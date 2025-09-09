@@ -59,6 +59,7 @@ Wobei jede dieser einzelnen Karten auch optional ausgeblendet werden können, si
 
 #### Kompakte Karte
 Diese Karte lässt sich nicht anpassen
+
 ![Beispielcard2](./examples/Kompakt.png)
 
 
@@ -162,5 +163,6 @@ name: Speicher 1 links
 compact: true
 ```
 ![Nur Solarenergie](./examples/Kompakt.png)
+
 
 
