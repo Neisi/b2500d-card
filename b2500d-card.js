@@ -190,6 +190,57 @@ class B2500DCard extends LitElement {
         .grid{grid-template-columns:1fr}
         .battery-card{grid-row:auto}
       }
+    
+    
+     /* Compact Card Styles */
+      .compact {
+        display: flex;
+        align-items: center;
+        background:linear-gradient(180deg,#0c0d12,#08090d);
+        border: 1px solid #1d1f27;
+        border-radius: var(--radius);
+      }
+
+      .compact .unit {
+        transform: scale(0.6);
+        transform-origin: center;
+      }
+      
+      .compact .device{
+          margin-left: 10px;
+      }
+
+      .compact .right {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-left: 10px;
+      }
+
+      .compact .name {
+        font-weight: 800;
+        font-size: 16px;
+        color: var(--text);
+        margin-bottom: 4px;
+      }
+
+      .compact .val {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        color: var(--text);
+        font-size: 14px;
+      }
+
+      .compact ha-icon[icon^="mdi:battery"] {
+        transform: rotate(90deg);
+        color: var(--cyan);
+      }
+      
+      .compact .flex{
+          display: flex;
+          gap: 10px;
+      }
     `;
   }
 
@@ -207,6 +258,7 @@ class B2500DCard extends LitElement {
       production: true,
       settings: true,
       solar: true,
+      compact: false,
       ...config
     };
   }
@@ -266,6 +318,50 @@ class B2500DCard extends LitElement {
   }
 
   render() {
+    const solar = Number(this._solarPower);
+    const output = Number(this._outputPower);
+
+    const batteryClass = solar > output && this._batteryPercent < 100 
+         ? 'charging' 
+        : output > solar && this._batteryPercent > 0 
+        ? 'discharging' 
+        : '';
+        
+    if (this.config.compact) {
+      return html`
+        <div class="compact">
+        <div class="device">
+          <div class="unit">
+            <div class="battery-bar">
+              <div class="battery-fill ${batteryClass}" 
+                   style="height:${Math.min(this._batteryPercent, 98)}%">
+              </div>
+            </div>
+            </div>
+          </div>
+
+          <div class="right">
+            <div class="name">${this.config.name || this.config.device}</div>
+            <div class="flex">
+            <div class="val">
+              <ha-icon icon="mdi:solar-power" style="margin-right:4px; color: var(--cyan)"></ha-icon>
+              ${this._solarPower}W
+            </div>
+            <div class="val">
+              <ha-icon icon="mdi:transmission-tower" style="margin-right:4px; color: var(--cyan)"></ha-icon>
+              ${this._outputPower}W
+            </div>
+            <div class="val">
+              <ha-icon icon="mdi:battery" style="margin-right:4px;"></ha-icon>
+              ${this._batteryPercent}%
+            </div>
+          </div>
+          </div>
+        </div>
+      `;
+    }
+    
+    
     const p1Pct = Math.round((this._p1 / 400) * 100);
     const p2Pct = Math.round((this._p2 / 400) * 100);
 
@@ -276,15 +372,7 @@ class B2500DCard extends LitElement {
       "Simultaneous Charging/Discharging": "Gleichzeitiges Laden/Entladen",
       "Fully Charge Then Discharge": "Vollständig Laden, dann Entladen"
     };
-    
-    const solar = Number(this._solarPower);
-    const output = Number(this._outputPower);
 
-    const batteryClass = solar > output && this._batteryPercent < 100 
-         ? 'charging' 
-        : output > solar && this._batteryPercent > 0 
-        ? 'discharging' 
-        : '';
 
     return html`
       <div class="phone">
