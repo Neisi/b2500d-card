@@ -2,7 +2,13 @@
 
 Eine Home Assistand Custom Card für den Marstek B2500d Speicher.
 
+<u>Große Karte:</u>
+
 ![Beispielcard](./examples/Screenshot.png)
+
+<u>Kompakte Karte:</u>
+
+![Beispielcard2](./examples/Kompakt.png)
 
 ## 🚀 Features
 Angelehnt an die Marstek App, zeigt diese Custom Card die Werte deines B2500d Speichers an.
@@ -21,7 +27,9 @@ Status zeigt ebenfalls aktuellen Batterieladestand in %.
 
 ### Karten
 
-Aktuell können folgende Werte angezeigt werden: 
+Aktuell können folgende Werte bzw. Karten angezeigt werden: 
+
+#### Große Karte
 
 1. Aktuelle Solarenergie gesamt und Eingang 1 & Eingang 2
    
@@ -47,7 +55,12 @@ Aktuell können folgende Modi eingestellt/umgestellt bzw. angezeigt werden
 
 ![Modus](./examples/Modus.png)
 
-Wobei jede dieser einzelnen Karten auch optional ausgeblendet werden können, siehe [Parameter](###Parameter)
+Wobei jede dieser einzelnen Karten auch optional ausgeblendet werden können, siehe Abschnitt Parameter
+
+#### Kompakte Karte
+Diese Karte lässt sich nicht anpassen
+![Beispielcard2](./examples/Kompakt.png)
+
 
 ## ⚙️ Installation
 
@@ -60,11 +73,15 @@ So kann man einfach das ganze Device übergeben. Die Card nutzt die Standard Ent
 
 
 ### HACS
+####  Benutzerdefinierte Repositories
 1. HACS öffnen
-2. Frontend → Custom Repositories → `https://github.com/Neisi/B2500D-Card`
-3. Installieren
+2. Frontend → oben rechts auf die drei Punkte → Custom Repositories / Benutzerdefinierte Repositories → `Neisi/b2500d-card`
+3. Typ Dashboard
+4. Installieren
+#### Community Store
+Kommt hoffentlich bald :-)
 
-### Manuell
+### Manuelle Installation ohne HACS
 1. `b2500d-card.js` nach `/config/www/` kopieren
 2. In Lovelace hinzufügen:
 ```yaml
@@ -93,7 +110,7 @@ Hier sind die verfügbaren Parameter für diese Lovelace Card beschrieben.
 | `production`         | boolean   | Legt fest, ob die Karte Stromerzeugung angezeigt werden soll            | `true`      |
 | `settings`        | boolean   | Legt fest, ob die Karte Einstellungen angezeigt werden soll              | `true`|
 | `solar`        | boolean   | Legt fest, ob die Karte Solarenergie angezeigt werden soll             | `true`|
-
+| `compact`        | boolean   | Zeigt die kompakte Variante an             | `false`|
 
 ### 📘 Beispielkonfiguration
 Füge die komplette Karte ganz einfach in dein Dashboard ein
@@ -136,5 +153,14 @@ battery: false
 solar: false
 ```
 ![Nur Solarenergie](./examples/Status_einzeln.png)
+
+Zeigt die kompakte Karte an:
+```yaml
+type: custom:b2500d-card
+device: speicher_1_links
+name: Speicher 1 links
+compact: true
+```
+![Nur Solarenergie](./examples/Kompakt.png)
 
 
