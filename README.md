@@ -74,13 +74,17 @@ So kann man einfach das ganze Device übergeben. Die Card nutzt die Standard Ent
 
 
 ### HACS
+#### Community Store
+Die Karte ist im HACS (Home Assistant Community Store) verfügbar.
+
+[![HACS-Repository hinzufügen](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=Neisi&repository=B2500D-Card)
+
+
 ####  Benutzerdefinierte Repositories
 1. HACS öffnen
 2. Frontend → oben rechts auf die drei Punkte → Custom Repositories / Benutzerdefinierte Repositories → `Neisi/b2500d-card`
 3. Typ Dashboard
 4. Installieren
-#### Community Store
-Kommt hoffentlich bald :-)
 
 ### Manuelle Installation ohne HACS
 1. `b2500d-card.js` nach `/config/www/` kopieren
@@ -163,6 +167,7 @@ name: Speicher 1 links
 compact: true
 ```
 ![Nur Solarenergie](./examples/Kompakt.png)
+
 
 
 
