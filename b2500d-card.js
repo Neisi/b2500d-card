@@ -178,7 +178,7 @@ class B2500DCard extends LitElement {
       }
       .bar.r .fill{
         right:0; left:auto;
-        background: rgb(84, 158, 164);
+        background: rgb(84, 158,164);
       }
       .barlabels{ display:flex; justify-content:space-between; margin-top:8px; font-weight:400; color: #549EA4; }
       .barlabels .hint{ color: #549EA4; font-weight:400; font-size:12px; margin-top:2px }
@@ -244,7 +244,6 @@ class B2500DCard extends LitElement {
       .row{
         display:flex; align-items:center; justify-content:space-between; gap:10px;
         padding:18px; 
-        background: var(--ha-card-background,var(--card-background-color,#fff));
       }
       .row .left{ display:flex; align-items:center; gap:12px; }
       .row .right{ color:var(--muted); font-weight:600; display:flex; align-items:center; }
@@ -664,6 +663,5 @@ class B2500DCard extends LitElement {
 
   getCardSize() { return 3; }
 }
-
 
 customElements.define("b2500d-card", B2500DCard);
