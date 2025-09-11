@@ -4,28 +4,29 @@ class B2500DCard extends LitElement {
   static get styles() {
     return css`
       :host {
-        --bg:#050508;
-        --panel:#16171c;
-        --text:#e9edf3;
-        --muted:#a4acb9;
+        --text:var(--primary-text-color);
+        --muted:var(--primary-text-color);
         --cyan:#58d0ff;
         --cyan-soft:#3bbcf0;
-        --divider:#2a2d36;
+        --divider: var(--entities-divider-color,var(--divider-color));
         --radius:22px;
-        font-family: 'Inter', sans-serif;
         display:block;
       }
 
-      .phone {
+      .container {
         width:100%;
         max-width:600px;
         margin:0 auto;
-        background:linear-gradient(180deg,#0c0d12,#08090d);
-        border-radius:28px;
         padding:18px 14px 26px;
-        box-shadow:0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.035);
-        border:1px solid #12131a;
-        box-sizing:border-box;
+        background: var(--ha-card-background, var(--card-background-color, #fff));
+        backdrop-filter: var(--ha-card-backdrop-filter, none);
+        box-shadow: var(--ha-card-box-shadow, none);
+        box-sizing: border-box;
+        border-radius: var(--ha-card-border-radius, 12px);
+        border-width: var(--ha-card-border-width, 1px);
+        border-style: solid;
+        border-color: var(--ha-card-border-color, var(--divider-color, #e0e0e0));
+        color: var(--primary-text-color);
       }
 
       .device {
@@ -37,10 +38,11 @@ class B2500DCard extends LitElement {
       }
 
       .device .unit {
-        width:130px;
-        height:120px;
+        width:80px;
+        height:130px;
         border-radius:18px;
-        background:linear-gradient(135deg,#3b3f48 0%,#2b2f37 45%,#22262d 100%);
+        background:#68686A;
+        background:linear-gradient(135deg,#68686A 0%,#48484a 45%,#5a5a5c 100%);
         box-shadow: inset 0 2px 0 rgba(255,255,255,.05), inset 0 -8px 16px rgba(0,0,0,.45);
         position:relative;
         display:flex;
@@ -49,11 +51,11 @@ class B2500DCard extends LitElement {
       }
     
       .unit .battery-bar {
-        width: 12px;
+        width: 10px;
         height: 80px;
         border-radius: 6px;
-        border: 2px solid #2b2e36;
-        background:#0f1116;
+        border: 1px solid var(--ha-card-background, var(--card-background-color, #fff));
+        background: rgb(28, 28, 28);
         position:relative;
         overflow:hidden;
         display:flex;
@@ -111,37 +113,66 @@ class B2500DCard extends LitElement {
         justify-content:center;
       }
 
-      .card {
-        background:var(--panel);
-        border:1px solid #1d1f27;
-        border-radius: var(--radius);
-        padding:16px;
-        box-sizing:border-box;
-      }
-
+        .card {
+          position: relative; 
+          background: var(--ha-card-background,var(--card-background-color,#fff));
+          border-radius: var(--radius);
+          padding:12px;
+          box-sizing:border-box;
+        }
+        
+        .icon {
+          position: absolute;
+          bottom: 14px;   
+          right: 14px;   
+          font-size: 22px; 
+          color: white; 
+          font-weight: 700;
+        }
+        
+        ha-icon[icon="mdi:battery-high"] {
+          transform: rotate(90deg);
+          transform-origin: center;
+          backface-visibility: hidden;
+          will-change: transform;
+          display: inline-block;
+        }
+        
       .card.flat{ box-shadow:none; padding:0; overflow:hidden }
 
       .title {
-        display:flex; align-items:center; gap:10px;
+        display:flex; align-items: baseline; gap:1px;
         font-weight:600; color:var(--text);
+        font-size: var(--ha-font-size-l)
       }
 
       .right-big {
-        margin-left:auto; font-weight:700; font-size:30px; color:var(--cyan);
+        margin-left:auto; font-weight:400; font-size:24px; color: white;
       }
 
-      .big-num{ font-size:24px; color:var(--cyan); font-weight:700; }
+      .big-num{ font-size:24px; color: white; font-weight:400; }
       .muted{ color:var(--muted) }
-      .subtitle{ color:var(--muted); font-size:13px; margin-top:10px }
+      .subtitle{ color:var(--muted); font-size:13px; margin-top:15px }
+      
+      .big-num-unit{
+          font-size:14px;
+          font-weight:400;
+          margin-left: 1px;
+      }
 
-      .barwrap{ margin-top:14px; display:flex; gap:12px; align-items:center; }
+      .flex-wrapper{
+            display: flex;
+            align-items: baseline;
+      }
+
+      .barwrap{ margin-top:8px; display:flex; gap:12px; align-items:center; }
       .bar{
-        background:#0e0f14; border:1px solid var(--divider);
-        border-radius:12px; height:6px; flex:1; position:relative; overflow:hidden;
+        background: #1C1C1C; 
+        border-radius:12px; height:3px; flex:1; position:relative; overflow:hidden;
       }
       .bar .fill{
         position:absolute; left:0; top:0; bottom:0; width:0%;
-        background:linear-gradient(90deg,var(--cyan-soft),var(--cyan));
+        background: rgb(84, 158, 164);
         border-radius:12px;
         transition: width .6s ease;
       }
@@ -149,30 +180,71 @@ class B2500DCard extends LitElement {
         right:0; left:auto;
         background:linear-gradient(270deg,var(--cyan-soft),var(--cyan));
       }
-      .barlabels{ display:flex; justify-content:space-between; margin-top:8px; font-weight:600; color:var(--cyan); }
-      .barlabels .hint{ color:var(--muted); font-weight:500; font-size:12px; margin-top:2px }
+      .barlabels{ display:flex; justify-content:space-between; margin-top:8px; font-weight:400; color: #549EA4; }
+      .barlabels .hint{ color: #549EA4; font-weight:400; font-size:12px; margin-top:2px }
 
       .battery{
         display:flex; align-items:center; justify-content:center; padding:10px 0 4px;
       }
-      .ring{
-        width:170px; height:170px; border-radius:50%;
-        background: conic-gradient(var(--cyan) 0 75%, #2a2d36 75% 100%);
-        display:grid; place-items:center;
-      }
-      .inner{
-        width:132px; height:132px; border-radius:50%;
-        background: radial-gradient(120px 120px at 50% 45%, #0d0f15, #0b0d12);
-        display:grid; place-items:center;
-        box-shadow: inset 0 2px 8px rgba(0,0,0,.6);
-      }
-      .kwh{ font-size:20px; font-weight:800; color:var(--cyan); }
-      .percent{ color:var(--muted); margin-top:2px; font-weight:600 }
+
+        .ring {
+          position: relative; 
+          width:150px;
+          height:150px;
+          border-radius:50%;
+          display:grid;
+          place-items:center;
+          padding: 6px; /* Ringdicke */
+          box-sizing: border-box;
+          overflow: visible; 
+        }
+        
+        .ring::before {
+          content: "";
+          position: absolute;
+          inset: -3px;             
+          border-radius: 50%;
+          background: inherit;     
+          filter: blur(8px);      
+          opacity: 0.6;           
+          z-index: 0;
+        }
+        
+        .ring > .inner {
+          position: relative;
+          z-index: 1; 
+        }
+        
+        .inner {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+          background-color: rgba(
+            var(--ha-card-background-rgb, 28,28,28),
+            1
+          );
+          display: grid;
+          place-items: center;
+        }
+        
+        .pulse-green {
+          color: #5be5bf;
+          scale: 0.8;
+          animation: pulseGreen 2.5s infinite ease-in-out;
+        }
+        
+        @keyframes pulseGreen {
+          0%,100% { opacity:0.6; transform: scale(0.95); }
+          50%     { opacity:1;   transform: scale(1.05); }
+        }
+
+      .kwh{ font-size:28px; font-weight:400; color: white; }
+      .percent{ color:var(--muted); margin-top:2px; font-weight:400; font-size: var(--ha-font-size-l) }
 
       .row{
         display:flex; align-items:center; justify-content:space-between; gap:10px;
         padding:18px; 
-        background:var(--panel);
+        background: var(--ha-card-background,var(--card-background-color,#fff));
       }
       .row .left{ display:flex; align-items:center; gap:12px; }
       .row .right{ color:var(--muted); font-weight:600; display:flex; align-items:center; }
@@ -182,7 +254,6 @@ class B2500DCard extends LitElement {
 
       .row .right ha-select,
       .row .right ha-switch {
-        --mdc-theme-primary: var(--cyan);
         min-width: 140px;
       }
 
@@ -196,9 +267,15 @@ class B2500DCard extends LitElement {
       .compact {
         display: flex;
         align-items: center;
-        background:linear-gradient(180deg,#0c0d12,#08090d);
-        border: 1px solid #1d1f27;
-        border-radius: var(--radius);
+        background: var(--ha-card-background, var(--card-background-color, #fff));
+        backdrop-filter: var(--ha-card-backdrop-filter, none);
+        box-shadow: var(--ha-card-box-shadow, none);
+        box-sizing: border-box;
+        border-radius: var(--ha-card-border-radius, 12px);
+        border-width: var(--ha-card-border-width, 1px);
+        border-style: solid;
+        border-color: var(--ha-card-border-color, var(--divider-color, #e0e0e0));
+        color: var(--primary-text-color);
       }
 
       .compact .unit {
@@ -207,7 +284,8 @@ class B2500DCard extends LitElement {
       }
       
       .compact .device{
-          margin-left: 10px;
+          margin-left: 3px;
+          padding: 0 0 0 0;
       }
 
       .compact .right {
@@ -229,18 +307,29 @@ class B2500DCard extends LitElement {
         align-items: center;
         font-weight: 600;
         color: var(--text);
-        font-size: 14px;
+        font-size: 12px;
       }
 
       .compact ha-icon[icon^="mdi:battery"] {
         transform: rotate(90deg);
-        color: var(--cyan);
+      }
+      
+      .compact ha-icon {
+        scale: 0.7;
+        margin-right: 1px;
+        color: white;
       }
       
       .compact .flex{
           display: flex;
           gap: 10px;
       }
+      
+      .compact p{
+          color: gray;
+          margin: 0;
+      }
+      
     `;
   }
 
@@ -300,21 +389,15 @@ class B2500DCard extends LitElement {
     if (!isoString) return '';
     
     const date = new Date(isoString);
-    const now = new Date();
-    
-    const h = date.getHours().toString().padStart(2, '0');
-    const m = date.getMinutes().toString().padStart(2, '0');
-    
-    const dayDiff = Math.floor(
-      (now.setHours(0,0,0,0) - date.setHours(0,0,0,0)) / 86400000
-    );
 
-    let dayText;
-    if (dayDiff === 0) dayText = 'heute';
-    else if (dayDiff === 1) dayText = 'gestern';
-    else dayText = `vor ${dayDiff} Tagen`;
-
-    return `${h}:${m} (${dayText})`;
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Monate 0-11
+    const day = String(date.getDate()).padStart(2, '0');
+    const hour = String(date.getHours()).padStart(2, '0');
+    const minute = String(date.getMinutes()).padStart(2, '0');
+    
+    const formatted = `${year}-${month}-${day} ${hour}:${minute}`;
+    return formatted;
   }
 
   render() {
@@ -328,6 +411,26 @@ class B2500DCard extends LitElement {
         : '';
         
     if (this.config.compact) {
+        const percent = this._batteryPercent ?? 0;
+
+        // Farbe bestimmen
+        let color = "green";
+        if (percent <= 19) {
+          color = "red";
+        } else if (percent <= 59) {
+          color = "orange";
+        }
+        // Icon abhängig vom Prozentwert wählen (auf nächste 10 abrunden)
+        let level = Math.ceil(percent / 10) * 10;
+        let icon = "";
+        // Sonderfälle
+        if (level > 100) level = 100;
+        if (percent === 100) {
+          // Für 100% gibt es das Icon ohne Zahl
+          icon = "mdi:battery";
+        } else {
+          icon = `mdi:battery-${level}`;
+        }
       return html`
         <div class="compact">
         <div class="device">
@@ -344,16 +447,16 @@ class B2500DCard extends LitElement {
             <div class="name">${this.config.name || this.config.device}</div>
             <div class="flex">
             <div class="val">
-              <ha-icon icon="mdi:solar-power" style="margin-right:4px; color: var(--cyan)"></ha-icon>
-              ${this._solarPower}W
+              <ha-icon icon="mdi:solar-power"></ha-icon>
+              <p>${this._solarPower}W</p>
             </div>
             <div class="val">
-              <ha-icon icon="mdi:transmission-tower" style="margin-right:4px; color: var(--cyan)"></ha-icon>
-              ${this._outputPower}W
+              <ha-icon icon="mdi:transmission-tower"></ha-icon>
+              <p>${this._outputPower}W</p>
             </div>
             <div class="val">
-              <ha-icon icon="mdi:battery" style="margin-right:4px;"></ha-icon>
-              ${this._batteryPercent}%
+               <ha-icon icon=${icon} style="color:${color}"></ha-icon>
+              <p>${this._batteryPercent}%</p>
             </div>
           </div>
           </div>
@@ -375,15 +478,15 @@ class B2500DCard extends LitElement {
 
 
     return html`
-      <div class="phone">
+      <div class="container">
         <div class="device">
           <!-- Header -->
-          <div style="display:flex; justify-content:space-between; width:100%; padding:0 12px; margin-bottom:6px;">
-            <div style="font-weight:600; color:var(--text);">
+          <div style="display:grid; justify-content:space-between; width:100%; padding:0 12px; margin-bottom:6px;">
+            <div style="font-weight:600; color:var(--text); font-size:20px">
               ${this.config.name || this.config.device}
             </div>
-            <div style="font-size:12px; color:var(--muted);">
-              Updated: ${this._formatLastUpdate(this._hass.states[`sensor.${this.config.device}_last_update`]?.state)}
+            <div style="font-size:10px; color:var(--muted);">
+              Aktualisierung: ${this._formatLastUpdate(this._hass.states[`sensor.${this.config.device}_last_update`]?.state)}
             </div>
           </div>
 
@@ -400,58 +503,103 @@ class B2500DCard extends LitElement {
            ${this.config.solar ? html`
           <article class="card solar">
             <div class="title">
-              ☀️ <span>Solarenergie</span>
-              <div class="right-big">${this._solarPower}W</div>
+              Solarenergie
+              <div class="right-big">${this._solarPower}</div><div class="big-num-unit">W</div>
+            </div>
+            <div style="width: 85%;">
+            <div class="barlabels">
+              <div>${this._p1} W</div>
+              <div>${this._p2} W</div>
             </div>
             <div class="barwrap">
               <div class="bar p1"><div class="fill" style="width:${p1Pct}%"></div></div>
               <div class="bar p2 r"><div class="fill" style="width:${p2Pct}%"></div></div>
             </div>
             <div class="barlabels">
-              <div>${this._p1}W<div class="hint">P1</div></div>
-              <div style="text-align:right">${this._p2}W<div class="hint">P2</div></div>
+              <div class="hint">P1</div>
+              <div class="hint">P2</div>
             </div>
+            </div>
+            <div class="icon"><ha-icon icon="mdi:solar-power-variant-outline"></ha-icon>︎</div>
           </article>` : ''}
 
           <!-- Output -->
           ${this.config.output ? html`
           <article class="card">
-            <div class="title">⚡️︎ Ausgang</div>
-            <div class="subtitle">Echtzeitleistung</div>
-            <div class="big-num">${this._outputPower}W</div>
-          </article>` : ''}
-
-          <!-- Battery -->
-          ${this.config.battery ? html`
-          <article class="card battery-card">
-            <div class="title">🔋 Batterie</div>
-            <div class="battery">
-              <div class="ring"
-                   style="background:conic-gradient(var(--cyan) 0 ${this._batteryPercent}%, #2a2d36 ${this._batteryPercent}% 100%)"
-                   @click=${() => this._handleMoreInfo(`sensor.${this.config.device}_battery_percentage`)}>
-                <div class="inner">
-                  <div style="text-align:center">
-                    <div class="kwh">${Number(this._batteryKwh).toFixed(2)}kWh</div>
-                    <div class="percent">${this._batteryPercent}%</div>
-                  </div>
-                </div>
+              <div class="title">Ausgang</div>
+              <div class="subtitle">Echtzeitleistung</div>
+              <div class="flex-wrapper">
+                <div class="big-num">${Number(this._outputPower).toFixed(1)}</div>
+                <div class="big-num-unit">W</div>
               </div>
-            </div>
-          </article>` : ''}
+               <div class="icon"><ha-icon icon="mdi:transmission-tower"></ha-icon>︎</div>
+            </article>
+          ` : ''}
+
+               <!-- Battery -->
+            ${this.config.battery ? html`
+            <article class="card battery-card">
+              <div class="title">Batterie</div>
+              <div class="battery">
+                <div class="ring"
+                     style="
+                      background: conic-gradient(
+                          #FC2022 0 ${Math.min(this._batteryPercent, 15)}%, 
+                          orange ${Math.min(this._batteryPercent, 50)}%, 
+                          #58C3D3 ${Math.min(this._batteryPercent, 100)}%, 
+                          rgb(13, 13, 13) ${this._batteryPercent}% 100%
+                        );
+                     "
+                     @click=${() => this._handleMoreInfo(`sensor.${this.config.device}_battery_percentage`)}>
+                  <div class="inner" style="position: relative;">
+                      ${solar > output && this._batteryPercent < 100 ? html`
+                        <ha-icon 
+                          icon="mdi:lightning-bolt" 
+                          class="pulse-green" 
+                          style="
+                            position:absolute; 
+                            top:10px; 
+                            transform: translateX(-50%); 
+                          ">
+                        </ha-icon>
+                      ` : ''}
+                    
+                      <div style="
+                           text-align:center; 
+                           display:flex; 
+                           flex-direction:column; 
+                           align-items:center; 
+                           justify-content:center; 
+                           height:100%;
+                           width:100%;
+                        ">
+                        <div class="flex-wrapper">
+                          <div class="kwh">${Number(this._batteryKwh).toFixed(2)}</div>
+                          <div class="big-num-unit">kWh</div>
+                        </div>
+                        <div class="percent">${this._batteryPercent}%</div>
+                      </div>
+                    </div>
+                    </div>
+                <div class="icon"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>
+              </div>
+            </article>` : ''}
+
 
           <!-- Production -->
           ${this.config.production ? html`
           <article class="card">
-            <div class="title">📊 Stromerzeugung</div>
+            <div class="title">Stromerzeugung</div>
             <div class="subtitle">Heute</div>
-            <div class="big-num">${Number(this._productionToday).toFixed(2)}kWh</div>
+           <div class="flex-wrapper"><div class="big-num">${Number(this._productionToday).toFixed(2)}</div><div class="big-num-unit">kWh</div></div>
+            <div class="icon"><ha-icon icon="mdi:chart-bar"></ha-icon>︎</div>
           </article>` : ''}
 
           <!-- Settings -->
           ${this.config.settings ? html`
           <div class="card flat" style="grid-column:1 / -1">
             <div class="row">
-              <div class="left">⚙️<div style="font-weight:600">Lademodus</div></div>
+              <div class="left"><ha-icon icon="mdi:cog"></ha-icon><div style="font-weight:600">Lademodus</div></div>
               <div class="right">
                 ${selectEntity
                   ? html`
@@ -477,7 +625,7 @@ class B2500DCard extends LitElement {
             </div>
             <div class="divider"></div>
             <div class="row">
-              <div class="left">🔌<div style="font-weight:600">Entlademodus automatisch</div></div>
+              <div class="left"><ha-icon icon="mdi:power-plug-battery"></ha-icon><div style="font-weight:600">Entlademodus automatisch</div></div>
               <div class="right">
                 ${switchEntity
                   ? html`
@@ -497,7 +645,7 @@ class B2500DCard extends LitElement {
             <div class="divider"></div>
             <div class="row">
               <div class="left">
-                <ha-icon icon="mdi:transmission-tower-export" style="--mdc-icon-size: 16px;"></ha-icon>
+                <ha-icon icon="mdi:transmission-tower-import"></ha-icon>
                 <div style="font-weight:600">Überschuss</div>
               </div>
               <div class="right">
