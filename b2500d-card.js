@@ -337,9 +337,17 @@ class B2500DCard extends LitElement {
   }
 
   setConfig(config) {
-    if (!config.device) {
-      throw new Error("You need to define a device!");
-    }
+    const { device, entities } = config;
+    
+      // Prüfen: entweder device oder entities, aber nicht beides
+      if (device && entities) {
+        throw new Error("Bitte entweder 'device' oder 'entities' angeben, nicht beides.");
+      }
+    
+      if (!device && !entities) {
+        throw new Error("Du musst entweder 'device' oder 'entities' angeben.");
+      }
+  
     this.config = {
       output: true,
       battery: true,
@@ -355,6 +363,8 @@ class B2500DCard extends LitElement {
     this._hass = hass;
     if (!this.config) return;
 
+    if (this.config.device) {
+    // Device-Modus
     const device = this.config.device;
     const getState = (entity) => hass.states[entity]?.state || 0;
 
@@ -365,7 +375,22 @@ class B2500DCard extends LitElement {
     this._batteryPercent = getState(`sensor.${device}_battery_percentage`);
     this._batteryKwh = getState(`sensor.${device}_battery_capacity`) / 1000;
     this._productionToday = getState(`sensor.${device}_daily_pv_charging`) / 1000;
-
+    } else if (this.config.entities) {
+    // Entities-Modus
+    const e = this.config.entities;
+    const getState = (entity) => hass.states[entity]?.state || 0;
+    
+    this._solarPower      = getState(e.solar_power);
+    this._p1              = getState(e.p1_power);
+    this._p2              = getState(e.p2_power);
+    this._outputPower     = getState(e.output_power);
+    this._batteryPercent  = getState(e.battery_percentage);
+    this._batteryKwh      = getState(e.battery_capacity) / 1000;
+    this._productionToday = getState(e.production_today) / 1000;
+    
+    //blende die Settingskarte im Entitätsmodus aus
+    this.config.settings = false;
+    }
     this.requestUpdate();
   }
 
@@ -377,6 +402,13 @@ class B2500DCard extends LitElement {
     });
     this.dispatchEvent(event);
   }
+  
+  _getEntity(type) {
+      if (this.config.device) {
+        return `sensor.${this.config.device}_${type}`;
+      }
+      return this.config.entities?.[type] || null;
+ }
 
   _toggleSwitch(entityId, checked) {
     this._hass.callService("switch", checked ? "turn_on" : "turn_off", {
@@ -463,9 +495,10 @@ class B2500DCard extends LitElement {
       `;
     }
     
-    
-    const p1Pct = Math.round((this._p1 / 400) * 100);
-    const p2Pct = Math.round((this._p2 / 400) * 100);
+    // Fallback: 600 wenn nix übergeben (standard beim b2500d)
+    const maxInputPower = this.config.max_input_power || 600;
+    const p1Pct = Math.round((this._p1 / maxInputPower) * 100);
+    const p2Pct = Math.round((this._p2 / maxInputPower) * 100);
 
     const selectEntity = this._hass.states[`select.${this.config.device}_charging_mode`];
     const switchEntity = this._hass.states[`switch.${this.config.device}_adaptive_mode`];
@@ -549,7 +582,7 @@ class B2500DCard extends LitElement {
                           rgb(13, 13, 13) ${this._batteryPercent}% 100%
                         );
                      "
-                     @click=${() => this._handleMoreInfo(`sensor.${this.config.device}_battery_percentage`)}>
+                     @click=${() => this._handleMoreInfo(this._getEntity("battery_percentage"))}>
                   <div class="inner" style="position: relative;">
                       ${solar > output && this._batteryPercent < 100 ? html`
                         <ha-icon 

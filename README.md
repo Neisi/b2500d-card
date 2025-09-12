@@ -2,6 +2,8 @@
 
 Eine Home Assistand Custom Card für den Marstek B2500d Speicher.
 
+Da man aber auch einzelne Entitäten und Optionen angeben kann, eignet sich diese Karte auch für andere Speicher!
+
 <u>Große Karte:</u>
 
 ![Beispielcard](./examples/Screenshot.png)
@@ -57,6 +59,8 @@ Aktuell können folgende Modi eingestellt/umgestellt bzw. angezeigt werden
 
 Wobei jede dieser einzelnen Karten auch optional ausgeblendet werden können, siehe Abschnitt Parameter
 
+Hinweis: Die Einstellungskarte wird standardmäßig im Entitätsmodus ausgeblendet!
+
 #### Kompakte Karte
 Diese Karte lässt sich nicht anpassen
 
@@ -65,12 +69,15 @@ Diese Karte lässt sich nicht anpassen
 
 ## ⚙️ Installation
 
-### Abhängigkeiten
-Die b2500d-card verwendet man am einfachsten mit einem Gerät was von folgendem Addon stammt:
+### Optionale Abhängigkeiten
+Optional: Die b2500d-card verwendet man am einfachsten mit einem Gerät was von folgendem Addon stammt:
 
-- [hm2mqtt by tomquist](https://github.com/tomquist/hm2mqtt)
+- [hm2mqtt von @tomquist](https://github.com/tomquist/hm2mqtt) 
 
-So kann man einfach das ganze Device übergeben. Die Card nutzt die Standard Entities. Wurden die Entitäten umbenannt funktioniert dieser einfache Weg nicht mehr.
+So kann man einfach das ganze Device übergeben. Die Card nutzt die Standard Entities. 
+Hierfür nutzt du bitte den Parameter device.
+
+Wurden die Entitäten umbenannt funktioniert dieser einfache Weg nicht mehr. Du kannst trotzdem dann einzelne Entitäten übergeben. Bitte schaue dir den Abschnitt Parameter an.
 
 
 ### HACS
@@ -99,37 +106,60 @@ resources:
 Hier sind die verfügbaren Parameter für diese Lovelace Card beschrieben.
 
 ### 🔒 Erforderliche Parameter
+Du **musst genau einen** der folgenden Parameter angeben:  
 
-| Name         | Typ      | Beschreibung                              |
-|--------------|----------|-------------------------------------------|
-| `device`     | string   | Der Name deines Geräts. Heißt z.B. der Sensor für die aktuelle Batterie "sensor.speicher_1_links_battery_percentage" ist <speicher_1_links> der Name des Geräts. |
+| Name       | Typ    | Beschreibung                                                                 |
+|------------|--------|------------------------------------------------------------------------------|
+| `device`   | string | Der Name deines Geräts. Heißt z.B. der Sensor für die aktuelle Batterie "sensor.speicher_1_links_battery_percentage" ist <speicher_1_links> der Name des Geräts. |
+| `entities` | object | Sammlung einzelner Entitäten, falls du kein komplettes `device` übergeben möchtest. Siehe unten. In diesem Modus wird automatisch die Einstellungskarte ausgeblendet |
 
+---
+
+### 📦 `entities` Objekt
+
+Wenn du statt `device` einzelne Entitäten angibst, sieht das Objekt so aus:  
+
+| Schlüssel              | Typ    | Beschreibung |
+|-------------------------|--------|--------------|
+| `battery_percentage`    | string | Sensor für Batterieladung in % |
+| `battery_capacity`      | string | Sensor für verfügbare Batteriekapazität (in Wh) |
+| `solar_power`     | string | Sensor für gesamte Solarleistung |
+| `p1_power`         | string | Sensor für PV-String 1 |
+| `p2_power`         | string | Sensor für PV-String 2 |
+| `output_power`    | string | Sensor für Gesamt-Ausgangsleistung |
+| `production_today`     | string | Sensor für die tägliche PV-Erzeugung (in Wh) |
+
+---
+Du musst nicht zwingend alle Entitäten angeben. Entitäten die du nicht übergibst sind automatisch 0. Für die kompakte Karte reicht es z.B. aus `battery_percentage`, `solar_power` und `output_power` anzugeben.
 
 ### 🧩 Optionale Parameter
 
 | Name           | Typ      | Beschreibung                                               | Standardwert     |
 |----------------|----------|------------------------------------------------------------|------------------|
-| `name`        | string   | Wie heißt dein Speicher ? Der Name wird oben links in der Karte angezeigt        | Std. Gerätename (also z.B. "speicher_1_links"            |
+| `name`        | string   | Wie heißt dein Speicher ? Der Name wird oben links in der Karte angezeigt        | Std. Gerätename (also z.B. `speicher_1_links`           |
 | `output`    | boolean  | Legt fest, ob die Karte Ausgangsleistung angezeigt werden soll            | `true`           |
 | `battery`         | boolean   | Legt fest, ob die Karte Batterie angezeigt werden soll                            | `true`|
 | `production`         | boolean   | Legt fest, ob die Karte Stromerzeugung angezeigt werden soll            | `true`      |
 | `settings`        | boolean   | Legt fest, ob die Karte Einstellungen angezeigt werden soll              | `true`|
 | `solar`        | boolean   | Legt fest, ob die Karte Solarenergie angezeigt werden soll             | `true`|
 | `compact`        | boolean   | Zeigt die kompakte Variante an             | `false`|
+| `max_input_power`        | number   | Maximalleistung in W pro Eingang (Skalierung der Balkenanzeige P1 und P2)             | `600` |
 
 ### 📘 Beispielkonfiguration
+#### mit Device
+
 Füge die komplette Karte ganz einfach in dein Dashboard ein
 ```yaml
 type: custom:b2500d-card
-device: speicher_1_links
-name: Speicher 1 links
+device: speicher_2_rechts
+name: Speicher 2 rechts
 ```
 
 Karte Einstellungen ausblenden:
 ```yaml
 type: custom:b2500d-card
-device: speicher_1_links
-name: Speicher 1 links
+device: speicher_2_rechts
+name: Speicher 2 rechts
 settings: false
 ```
 ![Modus off](./examples/Modus_off.png)
@@ -137,8 +167,8 @@ settings: false
 Zeigt nur die Karte Solarenergie an:
 ```yaml
 type: custom:b2500d-card
-device: speicher_1_links
-name: Speicher 1 links
+device: speicher_2_rechts
+name: Speicher 2 rechts
 settings: false
 output: false
 production: false
@@ -149,8 +179,8 @@ battery: false
 Zeigt nur die Status Karte an:
 ```yaml
 type: custom:b2500d-card
-device: speicher_1_links
-name: Speicher 1 links
+device: speicher_2_rechts
+name: Speicher 2 rechts
 settings: false
 output: false
 production: false
@@ -167,6 +197,19 @@ name: Speicher 1 links
 compact: true
 ```
 ![Nur Solarenergie](./examples/Kompakt.png)
+
+
+#### mit Entitäten
+
+Beispiel mit Entitäten statt device
+```yaml
+type: custom:b2500d-card
+entities:
+  solar_power: sensor.mein_speicher_total_input_power
+  battery_capacity: sensor.mein_speicher_battery_capacity
+  ......
+name: Mein Speicher
+```
 
 
 
