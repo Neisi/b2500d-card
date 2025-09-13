@@ -232,11 +232,6 @@ class B2500DCard extends LitElement {
           scale: 0.8;
           animation: pulseGreen 2.5s infinite ease-in-out;
         }
-        
-        @keyframes pulseGreen {
-          0%,100% { opacity:0.6; transform: scale(0.95); }
-          50%     { opacity:1;   transform: scale(1.05); }
-        }
 
       .kwh{ font-size:28px; font-weight:400; color: white; }
       .percent{ color:var(--muted); margin-top:2px; font-weight:400; font-size: var(--ha-font-size-l) }
@@ -430,6 +425,8 @@ class B2500DCard extends LitElement {
     const formatted = `${year}-${month}-${day} ${hour}:${minute}`;
     return formatted;
   }
+  
+  
 
   render() {
     const solar = Number(this._solarPower);
@@ -507,7 +504,6 @@ class B2500DCard extends LitElement {
       "Simultaneous Charging/Discharging": "Gleichzeitiges Laden/Entladen",
       "Fully Charge Then Discharge": "Vollständig Laden, dann Entladen"
     };
-
 
     return html`
       <div class="container">
@@ -693,8 +689,152 @@ class B2500DCard extends LitElement {
       </div>
     `;
   }
+  
+  
+  static getConfigElement() {
+    return document.createElement("b2500d-card-editor");
+  }
 
   getCardSize() { return 3; }
 }
 
 customElements.define("b2500d-card", B2500DCard);
+
+
+// -------------------------------------
+// Config Editor
+// -------------------------------------
+
+class B2500DCardEditor extends LitElement {
+  static get properties() {
+    return {
+      _config: { type: Object },
+      hass: { type: Object },
+    };
+  }
+
+
+  setConfig(config) {
+    // Defaults behalten, damit Felder sichtbar sind
+    this._config = {
+      output: true,
+      battery: true,
+      production: true,
+      settings: true,
+      solar: true,
+      compact: false,
+      max_input_power: 600,
+      entities: {
+      battery_percentage: "",
+      battery_capacity: "",
+      solar_power: "",
+      p1_power: "",
+      p2_power: "",
+      output_power: "",
+      production_today: ""},
+      ...config,
+    };
+  }
+
+      set hass(hass) {
+        this._hass = hass;
+      }
+
+      _valueChanged(ev) {
+      if (!this._config || !this._hass) return;
+    
+      const newConfig = { ...ev.detail.value };
+    
+      // Wenn entities leer oder alle Werte leer, entfernen
+      if (newConfig.entities) {
+        const isEmpty = Object.values(newConfig.entities).every(
+          (v) => v === null || v === undefined || v === ""
+        );
+        if (isEmpty) {
+          delete newConfig.entities;
+        }
+      }
+    
+      this._config = newConfig;
+    
+      this.dispatchEvent(
+        new CustomEvent("config-changed", {
+          detail: { config: this._config },
+          bubbles: true,
+          composed: true
+        })
+      );
+    }
+
+  _computeLabel(field) {
+    const labels = {
+      name: "Name der Karte",
+      device: "Geräte-ID (z. B. b2500d)",
+      entities: "Alternative Entitäten (Objekt)",
+      compact: "Kompakt-Ansicht",
+      solar: "Solar anzeigen",
+      output: "Ausgang anzeigen",
+      battery: "Batterie anzeigen",
+      production: "Produktion anzeigen",
+      settings: "Einstellungen anzeigen",
+      max_input_power: "Maximale Eingangsleistung (W)",
+    };
+    return labels[field.name] || field.name;
+  }
+
+  _computeHelper(field) {
+    const helpers = {
+      device: "Gib die Geräte-Kurzbezeichnung an (nur ODER, nicht beides: device ODER entities).",
+      entities: "Alternativ: Objekt mit Entitäten (z. B. { \"solar_power\": \"sensor.x\" })",
+      compact: "Zeigt eine kompaktere Variante der Karte",
+      settings: "Wird nur angezeigt, wenn Geräte-ID verwendet wird",
+      max_input_power: "maximale Eingangsleistung am Speicher pro Eingang",
+    };
+    return helpers[field.name] || "";
+  }
+
+  render() {
+    if (!this._config) return html``;
+
+    const schema = [
+      { name: "name", selector: { text: {} } },
+      { name: "device", selector: { text: {} } },
+      {
+          name: "entities",
+          selector: {
+            object: {
+              properties: {
+                battery_percentage: { selector: { entity: {} } },
+                battery_capacity: { selector: { entity: {} } },
+                solar_power: { selector: { entity: {} } },
+                p1_power: { selector: { entity: {} } },
+                p2_power: { selector: { entity: {} } },
+                output_power: { selector: { entity: {} } },
+                production_today: { selector: { entity: {} } }
+              }
+            }
+          }
+        },
+      { name: "compact", selector: { boolean: {} } },
+      { name: "solar", selector: { boolean: {} } },
+      { name: "output", selector: { boolean: {} } },
+      { name: "battery", selector: { boolean: {} } },
+      { name: "production", selector: { boolean: {} } },
+      { name: "settings", selector: { boolean: {} } },
+      { name: "max_input_power", selector: { number: { min: 100, max: 5000, step: 50 } } },
+    ];
+
+    return html`
+      <ha-form
+        .hass=${this._hass}
+        .data=${this._config}
+        .schema=${schema}
+        .computeLabel=${(f) => this._computeLabel(f)}
+        .computeHelper=${(f) => this._computeHelper(f)}
+        @value-changed=${this._valueChanged}
+      ></ha-form>
+    `;
+  }
+}
+
+customElements.define("b2500d-card-editor", B2500DCardEditor);

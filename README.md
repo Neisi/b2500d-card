@@ -1,4 +1,4 @@
-# B2500D-Card
+# B2500D-Card | Die Solarspeicher-Karte
 
 Eine Home Assistand Custom Card für den Marstek B2500d Speicher.
 
@@ -145,8 +145,12 @@ Du musst nicht zwingend alle Entitäten angeben. Entitäten die du nicht übergi
 | `compact`        | boolean   | Zeigt die kompakte Variante an             | `false`|
 | `max_input_power`        | number   | Maximalleistung in W pro Eingang (Skalierung der Balkenanzeige P1 und P2)             | `600` |
 
-### 📘 Beispielkonfiguration
-#### mit Device
+### 📘 Konfiguration
+
+Die Karte kann entweder mit dem Code-Editor oder mit dem visuellen Editor (ab v.1.4.0) konfiguriert werden.
+
+#### Manuelle Konfiguration mit dem Code-Editor
+#### Mit Device
 
 Füge die komplette Karte ganz einfach in dein Dashboard ein
 ```yaml
@@ -199,7 +203,7 @@ compact: true
 ![Nur Solarenergie](./examples/Kompakt.png)
 
 
-#### mit Entitäten
+#### Mit Entitäten
 
 Beispiel mit Entitäten statt device
 ```yaml
@@ -211,6 +215,10 @@ entities:
 name: Mein Speicher
 ```
 
+#### Konfiguration mit dem visuellen Editor (ab v1.4.0)
 
+Die Konfiguration kann auch mit dem Built-In-Form-Editor (visueller Editor) vorgenommen werden.
+
+![visueller Editor](./examples/visueller_Editor.png)
 
 
