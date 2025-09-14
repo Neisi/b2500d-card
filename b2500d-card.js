@@ -456,7 +456,9 @@ class B2500DCard extends LitElement {
         if (percent === 100) {
           // Für 100% gibt es das Icon ohne Zahl
           icon = "mdi:battery";
-        } else {
+        } else if (percent < 10){
+            icon = "mdi:battery-outline";
+        }else {
           icon = `mdi:battery-${level}`;
         }
       return html`
@@ -836,5 +838,6 @@ class B2500DCardEditor extends LitElement {
     `;
   }
 }
+
 
 customElements.define("b2500d-card-editor", B2500DCardEditor);
