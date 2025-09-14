@@ -449,18 +449,17 @@ class B2500DCard extends LitElement {
           color = "orange";
         }
         // Icon abhängig vom Prozentwert wählen (auf nächste 10 abrunden)
-        let level = Math.ceil(percent / 10) * 10;
         let icon = "";
-        // Sonderfälle
-        if (level > 100) level = 100;
-        if (percent === 100) {
-          // Für 100% gibt es das Icon ohne Zahl
-          icon = "mdi:battery";
-        } else if (percent < 10){
-            icon = "mdi:battery-outline";
-        }else {
-          icon = `mdi:battery-${level}`;
-        }
+if (percent >= 100) {
+  // Sonderfall: 100% hat eigenes Icon
+  icon = "mdi:battery";
+} else if (percent < 10) {
+  // Unter 10% gibt es nur die Outline-Version
+  icon = "mdi:battery-outline";
+} else {
+  let level = Math.floor(percent / 10) * 10;
+  icon = `mdi:battery-${level}`;
+}
       return html`
         <div class="compact">
         <div class="device">
@@ -841,3 +840,4 @@ class B2500DCardEditor extends LitElement {
 
 
 customElements.define("b2500d-card-editor", B2500DCardEditor);
+
