@@ -94,7 +94,7 @@ The card is available in HACS (Home Assistant Community Store).
 4. Install  
 
 ### Manual Installation (without HACS)
-1. Copy `b2500d-card.js` to `/config/www/`  
+1. Copy `b2500d-card.js` and the whole folder `localize/` to `/config/www/`  
 2. Add it in Lovelace:  
 ```yaml
 resources:

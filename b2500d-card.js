@@ -1,4 +1,26 @@
 import { LitElement, html, css } from "https://unpkg.com/lit-element/lit-element.js?module";
+import en from "./localize/en.js";
+import de from "./localize/de.js";
+import es from "./localize/es.js";
+import fr from "./localize/fr.js";
+
+const languages = { en, de, es, fr };
+
+function _getLangCode(langInput) {
+  const raw = (langInput || (typeof navigator !== "undefined" && navigator.language) || "en").toString().toLowerCase();
+  return raw.split(/[_-]/)[0]; 
+}
+
+function localize(key, langInput) {
+  const lang = _getLangCode(langInput);
+  let result = languages[lang] || languages["en"];
+  const parts = key.split(".");
+  for (const p of parts) {
+    result = result?.[p];
+    if (!result) break;
+  }
+  return result || "";
+}
 
 class B2500DCard extends LitElement {
   static get styles() {
@@ -331,18 +353,19 @@ class B2500DCard extends LitElement {
     super();
   }
 
+
+
   setConfig(config) {
     const { device, entities } = config;
-    
-      // Prüfen: entweder device oder entities, aber nicht beides
-      if (device && entities) {
-        throw new Error("Bitte entweder 'device' oder 'entities' angeben, nicht beides.");
-      }
-    
-      if (!device && !entities) {
-        throw new Error("Du musst entweder 'device' oder 'entities' angeben.");
-      }
-  
+
+    // Prüfen: entweder device oder entities, aber nicht beides
+    if (device && entities) {
+      throw new Error(localize("errors.both", this._hass?.language));
+    }
+    if (!device && !entities) {
+      throw new Error(localize("errors.missing", this._hass?.language));
+    }
+
     this.config = {
       output: true,
       battery: true,
@@ -359,32 +382,32 @@ class B2500DCard extends LitElement {
     if (!this.config) return;
 
     if (this.config.device) {
-    // Device-Modus
-    const device = this.config.device;
-    const getState = (entity) => hass.states[entity]?.state || 0;
+      // Device-Modus
+      const device = this.config.device;
+      const getState = (entity) => hass.states[entity]?.state || 0;
 
-    this._solarPower = getState(`sensor.${device}_total_input_power`);
-    this._p1 = getState(`sensor.${device}_input_1_power`);
-    this._p2 = getState(`sensor.${device}_input_2_power`);
-    this._outputPower = getState(`sensor.${device}_total_output_power`);
-    this._batteryPercent = getState(`sensor.${device}_battery_percentage`);
-    this._batteryKwh = getState(`sensor.${device}_battery_capacity`) / 1000;
-    this._productionToday = getState(`sensor.${device}_daily_pv_charging`) / 1000;
+      this._solarPower = getState(`sensor.${device}_total_input_power`);
+      this._p1 = getState(`sensor.${device}_input_1_power`);
+      this._p2 = getState(`sensor.${device}_input_2_power`);
+      this._outputPower = getState(`sensor.${device}_total_output_power`);
+      this._batteryPercent = getState(`sensor.${device}_battery_percentage`);
+      this._batteryKwh = getState(`sensor.${device}_battery_capacity`) / 1000;
+      this._productionToday = getState(`sensor.${device}_daily_pv_charging`) / 1000;
     } else if (this.config.entities) {
-    // Entities-Modus
-    const e = this.config.entities;
-    const getState = (entity) => hass.states[entity]?.state || 0;
-    
-    this._solarPower      = getState(e.solar_power);
-    this._p1              = getState(e.p1_power);
-    this._p2              = getState(e.p2_power);
-    this._outputPower     = getState(e.output_power);
-    this._batteryPercent  = getState(e.battery_percentage);
-    this._batteryKwh      = getState(e.battery_capacity) / 1000;
-    this._productionToday = getState(e.production_today) / 1000;
-    
-    //blende die Settingskarte im Entitätsmodus aus
-    this.config.settings = false;
+      // Entities-Modus
+      const e = this.config.entities;
+      const getState = (entity) => hass.states[entity]?.state || 0;
+
+      this._solarPower = getState(e.solar_power);
+      this._p1 = getState(e.p1_power);
+      this._p2 = getState(e.p2_power);
+      this._outputPower = getState(e.output_power);
+      this._batteryPercent = getState(e.battery_percentage);
+      this._batteryKwh = getState(e.battery_capacity) / 1000;
+      this._productionToday = getState(e.production_today) / 1000;
+
+      //blende die Settingskarte im Entitätsmodus aus
+      this.config.settings = false;
     }
     this.requestUpdate();
   }
@@ -397,13 +420,13 @@ class B2500DCard extends LitElement {
     });
     this.dispatchEvent(event);
   }
-  
+
   _getEntity(type) {
-      if (this.config.device) {
-        return `sensor.${this.config.device}_${type}`;
-      }
-      return this.config.entities?.[type] || null;
- }
+    if (this.config.device) {
+      return `sensor.${this.config.device}_${type}`;
+    }
+    return this.config.entities?.[type] || null;
+  }
 
   _toggleSwitch(entityId, checked) {
     this._hass.callService("switch", checked ? "turn_on" : "turn_off", {
@@ -413,7 +436,7 @@ class B2500DCard extends LitElement {
 
   _formatLastUpdate(isoString) {
     if (!isoString) return '';
-    
+
     const date = new Date(isoString);
 
     const year = date.getFullYear();
@@ -421,45 +444,46 @@ class B2500DCard extends LitElement {
     const day = String(date.getDate()).padStart(2, '0');
     const hour = String(date.getHours()).padStart(2, '0');
     const minute = String(date.getMinutes()).padStart(2, '0');
-    
+
     const formatted = `${year}-${month}-${day} ${hour}:${minute}`;
     return formatted;
   }
-  
-  
+
+
 
   render() {
     const solar = Number(this._solarPower);
     const output = Number(this._outputPower);
 
-    const batteryClass = solar > output && this._batteryPercent < 100 
-         ? 'charging' 
-        : output > solar && this._batteryPercent > 0 
-        ? 'discharging' 
+    const lang = this._hass?.language || "en";
+    const batteryClass = solar > output && this._batteryPercent < 100
+      ? 'charging'
+      : output > solar && this._batteryPercent > 0
+        ? 'discharging'
         : '';
-        
-    if (this.config.compact) {
-        const percent = this._batteryPercent ?? 0;
 
-        // Farbe bestimmen
-        let color = "green";
-        if (percent <= 19) {
-          color = "red";
-        } else if (percent <= 59) {
-          color = "orange";
-        }
-        // Icon abhängig vom Prozentwert wählen (auf nächste 10 abrunden)
-        let icon = "";
-if (percent >= 100) {
-  // Sonderfall: 100% hat eigenes Icon
-  icon = "mdi:battery";
-} else if (percent < 10) {
-  // Unter 10% gibt es nur die Outline-Version
-  icon = "mdi:battery-outline";
-} else {
-  let level = Math.floor(percent / 10) * 10;
-  icon = `mdi:battery-${level}`;
-}
+    if (this.config.compact) {
+      const percent = this._batteryPercent ?? 0;
+
+      // Farbe bestimmen
+      let color = "green";
+      if (percent <= 19) {
+        color = "red";
+      } else if (percent <= 59) {
+        color = "orange";
+      }
+      // Icon abhängig vom Prozentwert wählen (auf nächste 10 abrunden)
+      let icon = "";
+      if (percent >= 100) {
+        // Sonderfall: 100% hat eigenes Icon
+        icon = "mdi:battery";
+      } else if (percent < 10) {
+        // Unter 10% gibt es nur die Outline-Version
+        icon = "mdi:battery-outline";
+      } else {
+        let level = Math.floor(percent / 10) * 10;
+        icon = `mdi:battery-${level}`;
+      }
       return html`
         <div class="compact">
         <div class="device">
@@ -492,7 +516,7 @@ if (percent >= 100) {
         </div>
       `;
     }
-    
+
     // Fallback: 600 wenn nix übergeben (standard beim b2500d)
     const maxInputPower = this.config.max_input_power || 600;
     const p1Pct = Math.round((this._p1 / maxInputPower) * 100);
@@ -501,10 +525,6 @@ if (percent >= 100) {
     const selectEntity = this._hass.states[`select.${this.config.device}_charging_mode`];
     const switchEntity = this._hass.states[`switch.${this.config.device}_adaptive_mode`];
 
-    const translations = {
-      "Simultaneous Charging/Discharging": "Gleichzeitiges Laden/Entladen",
-      "Fully Charge Then Discharge": "Vollständig Laden, dann Entladen"
-    };
 
     return html`
       <div class="container">
@@ -515,7 +535,7 @@ if (percent >= 100) {
               ${this.config.name || this.config.device}
             </div>
             <div style="font-size:10px; color:var(--muted);">
-              Aktualisierung: ${this._formatLastUpdate(this._hass.states[`sensor.${this.config.device}_last_update`]?.state)}
+              ${localize("labels.last_update", lang)}: ${this._formatLastUpdate(this._hass.states[`sensor.${this.config.device}_last_update`]?.state)}
             </div>
           </div>
 
@@ -532,7 +552,7 @@ if (percent >= 100) {
            ${this.config.solar ? html`
           <article class="card solar">
             <div class="title">
-              Solarenergie
+              ${localize("card.solar", lang)}
               <div class="right-big">${this._solarPower}</div><div class="big-num-unit">W</div>
             </div>
             <div style="width: 85%;">
@@ -555,8 +575,8 @@ if (percent >= 100) {
           <!-- Output -->
           ${this.config.output ? html`
           <article class="card">
-              <div class="title">Ausgang</div>
-              <div class="subtitle">Echtzeitleistung</div>
+              <div class="title">${localize("card.output", lang)}</div>
+              <div class="subtitle">${localize("card.realtime", lang)}</div>
               <div class="flex-wrapper">
                 <div class="big-num">${Number(this._outputPower).toFixed(1)}</div>
                 <div class="big-num-unit">W</div>
@@ -568,7 +588,7 @@ if (percent >= 100) {
                <!-- Battery -->
             ${this.config.battery ? html`
             <article class="card battery-card">
-              <div class="title">Batterie</div>
+              <div class="title">${localize("card.battery", lang)}</div>
               <div class="battery">
                 <div class="ring"
                      style="
@@ -618,8 +638,8 @@ if (percent >= 100) {
           <!-- Production -->
           ${this.config.production ? html`
           <article class="card">
-            <div class="title">Stromerzeugung</div>
-            <div class="subtitle">Heute</div>
+            <div class="title">${localize("card.production", lang)}</div>
+            <div class="subtitle">${localize("card.today", lang)}</div>
            <div class="flex-wrapper"><div class="big-num">${Number(this._productionToday).toFixed(2)}</div><div class="big-num-unit">kWh</div></div>
             <div class="icon"><ha-icon icon="mdi:chart-bar"></ha-icon>︎</div>
           </article>` : ''}
@@ -628,54 +648,54 @@ if (percent >= 100) {
           ${this.config.settings ? html`
           <div class="card flat" style="grid-column:1 / -1">
             <div class="row">
-              <div class="left"><ha-icon icon="mdi:cog"></ha-icon><div style="font-weight:600">Lademodus</div></div>
+              <div class="left"><ha-icon icon="mdi:cog"></ha-icon><div style="font-weight:600">${localize("labels.charging_mode", lang)}</div></div>
               <div class="right">
                 ${selectEntity
-                  ? html`
+          ? html`
                       <ha-select
                         .value=${selectEntity.state}
                         @selected=${(e) => {
-                          const val = e.target.value;
-                          this._hass.callService("select", "select_option", {
-                            entity_id: selectEntity.entity_id,
-                            option: val
-                          });
-                        }}
+              const val = e.target.value;
+              this._hass.callService("select", "select_option", {
+                entity_id: selectEntity.entity_id,
+                option: val
+              });
+            }}
                       >
                         ${(selectEntity.attributes?.options || []).map(
-                          (opt) => html`<mwc-list-item value=${opt}>
-                            ${translations[opt] || opt}
+              (opt) => html`<mwc-list-item value=${opt}>
+                            ${localize(opt === "Simultaneous Charging/Discharging" ? "labels.simul_charge" : "labels.full_then_discharge", lang)}
                           </mwc-list-item>`
-                        )}
+            )}
                       </ha-select>
                     `
-                  : html`<span>-</span>`}
+          : html`<span>-</span>`}
               </div>
             </div>
             <div class="divider"></div>
             <div class="row">
-              <div class="left"><ha-icon icon="mdi:power-plug-battery"></ha-icon><div style="font-weight:600">Entlademodus automatisch</div></div>
+              <div class="left"><ha-icon icon="mdi:power-plug-battery"></ha-icon><div style="font-weight:600">${localize("labels.discharge_mode", lang)}</div></div>
               <div class="right">
                 ${switchEntity
-                  ? html`
+          ? html`
                       <ha-switch
                         .checked=${switchEntity.state === "on"}
                         @change=${(e) => {
-                          const service = e.target.checked ? "turn_on" : "turn_off";
-                          this._hass.callService("switch", service, {
-                            entity_id: switchEntity.entity_id
-                          });
-                        }}
+              const service = e.target.checked ? "turn_on" : "turn_off";
+              this._hass.callService("switch", service, {
+                entity_id: switchEntity.entity_id
+              });
+            }}
                       ></ha-switch>
                     `
-                  : html`<span>-</span>`}
+          : html`<span>-</span>`}
               </div>
             </div>
             <div class="divider"></div>
             <div class="row">
               <div class="left">
                 <ha-icon icon="mdi:transmission-tower-import"></ha-icon>
-                <div style="font-weight:600">Überschuss</div>
+                <div style="font-weight:600">${localize("labels.surplus", lang)}</div>
               </div>
               <div class="right">
                 <ha-switch
@@ -690,8 +710,8 @@ if (percent >= 100) {
       </div>
     `;
   }
-  
-  
+
+
   static getConfigElement() {
     return document.createElement("b2500d-card-editor");
   }
@@ -726,72 +746,58 @@ class B2500DCardEditor extends LitElement {
       compact: false,
       max_input_power: 600,
       entities: {
-      battery_percentage: "",
-      battery_capacity: "",
-      solar_power: "",
-      p1_power: "",
-      p2_power: "",
-      output_power: "",
-      production_today: ""},
+        battery_percentage: "",
+        battery_capacity: "",
+        solar_power: "",
+        p1_power: "",
+        p2_power: "",
+        output_power: "",
+        production_today: ""
+      },
       ...config,
     };
   }
 
-      set hass(hass) {
-        this._hass = hass;
-      }
+  set hass(hass) {
+    this._hass = hass;
+  }
 
-      _valueChanged(ev) {
-      if (!this._config || !this._hass) return;
-    
-      const newConfig = { ...ev.detail.value };
-    
-      // Wenn entities leer oder alle Werte leer, entfernen
-      if (newConfig.entities) {
-        const isEmpty = Object.values(newConfig.entities).every(
-          (v) => v === null || v === undefined || v === ""
-        );
-        if (isEmpty) {
-          delete newConfig.entities;
-        }
-      }
-    
-      this._config = newConfig;
-    
-      this.dispatchEvent(
-        new CustomEvent("config-changed", {
-          detail: { config: this._config },
-          bubbles: true,
-          composed: true
-        })
+  _valueChanged(ev) {
+    if (!this._config || !this._hass) return;
+
+    const newConfig = { ...ev.detail.value };
+
+    // Wenn entities leer oder alle Werte leer, entfernen
+    if (newConfig.entities) {
+      const isEmpty = Object.values(newConfig.entities).every(
+        (v) => v === null || v === undefined || v === ""
       );
+      if (isEmpty) {
+        delete newConfig.entities;
+      }
     }
 
+    this._config = newConfig;
+
+    this.dispatchEvent(
+      new CustomEvent("config-changed", {
+        detail: { config: this._config },
+        bubbles: true,
+        composed: true
+      })
+    );
+  }
+
   _computeLabel(field) {
-    const labels = {
-      name: "Name der Karte",
-      device: "Geräte-ID (z. B. b2500d)",
-      entities: "Alternative Entitäten (Objekt)",
-      compact: "Kompakt-Ansicht",
-      solar: "Solar anzeigen",
-      output: "Ausgang anzeigen",
-      battery: "Batterie anzeigen",
-      production: "Produktion anzeigen",
-      settings: "Einstellungen anzeigen",
-      max_input_power: "Maximale Eingangsleistung (W)",
-    };
-    return labels[field.name] || field.name;
+    const name = field?.name || field; // falls field ein String ist
+    const lang = this._hass?.locale?.language || this._hass?.language || navigator?.language || "en";
+    return localize(`editor.${name}`, lang);
   }
 
   _computeHelper(field) {
-    const helpers = {
-      device: "Gib die Geräte-Kurzbezeichnung an (nur ODER, nicht beides: device ODER entities).",
-      entities: "Alternativ: Objekt mit Entitäten (z. B. { \"solar_power\": \"sensor.x\" })",
-      compact: "Zeigt eine kompaktere Variante der Karte",
-      settings: "Wird nur angezeigt, wenn Geräte-ID verwendet wird",
-      max_input_power: "maximale Eingangsleistung am Speicher pro Eingang",
-    };
-    return helpers[field.name] || "";
+    const name = field?.name || field;
+    const lang = this._hass?.locale?.language || this._hass?.language || navigator?.language || "en";
+    return localize(`helpers.${name}`, lang);
   }
 
   render() {
@@ -801,21 +807,21 @@ class B2500DCardEditor extends LitElement {
       { name: "name", selector: { text: {} } },
       { name: "device", selector: { text: {} } },
       {
-          name: "entities",
-          selector: {
-            object: {
-              properties: {
-                battery_percentage: { selector: { entity: {} } },
-                battery_capacity: { selector: { entity: {} } },
-                solar_power: { selector: { entity: {} } },
-                p1_power: { selector: { entity: {} } },
-                p2_power: { selector: { entity: {} } },
-                output_power: { selector: { entity: {} } },
-                production_today: { selector: { entity: {} } }
-              }
+        name: "entities",
+        selector: {
+          object: {
+            properties: {
+              battery_percentage: { selector: { entity: {} } },
+              battery_capacity: { selector: { entity: {} } },
+              solar_power: { selector: { entity: {} } },
+              p1_power: { selector: { entity: {} } },
+              p2_power: { selector: { entity: {} } },
+              output_power: { selector: { entity: {} } },
+              production_today: { selector: { entity: {} } }
             }
           }
-        },
+        }
+      },
       { name: "compact", selector: { boolean: {} } },
       { name: "solar", selector: { boolean: {} } },
       { name: "output", selector: { boolean: {} } },
