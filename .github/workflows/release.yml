@@ -28,3 +28,5 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: b2500d-card.js
+        env:
+          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_PAT }}
