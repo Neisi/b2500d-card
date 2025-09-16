@@ -1,0 +1,14 @@
+{
+  "name": "b2500d-card",
+  "version": "1.0.0",
+  "description": "Custom card for Home Assistant",
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.0",
+    "@rollup/plugin-json": "^6.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.0",
+    "rollup": "^3.0.0"
+  }
+}

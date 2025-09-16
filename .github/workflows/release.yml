@@ -1,0 +1,30 @@
+name: Build and Release
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build with Rollup
+        run: npm run build
+
+      # Kopiere das Bundle ins Root, damit es "b2500d-card.js" heißt
+      - name: Prepare release asset
+        run: cp dist/b2500d-card.js b2500d-card.js
+
+      - name: Upload build to release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: b2500d-card.js
