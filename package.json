@@ -2,6 +2,7 @@
   "name": "b2500d-card",
   "version": "1.0.0",
   "description": "Custom card for Home Assistant",
+  "type": "module",
   "scripts": {
     "build": "rollup -c"
   },
@@ -11,4 +12,5 @@
     "@rollup/plugin-node-resolve": "^15.0.0",
     "rollup": "^3.0.0"
   }
+
 }
