@@ -4,7 +4,7 @@
   "description": "Custom card for Home Assistant",
   "type": "module",
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c rollup.config.mjs"
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^25.0.0",
