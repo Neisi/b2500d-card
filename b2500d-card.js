@@ -9,7 +9,7 @@ const languages = { en, de, es, fr };
 
 function _getLangCode(langInput) {
   const raw = (langInput || (typeof navigator !== "undefined" && navigator.language) || "en").toString().toLowerCase();
-  return raw.split(/[_-]/)[0]; 
+  return raw.split(/[_-]/)[0];
 }
 
 function localize(key, langInput) {
@@ -438,10 +438,22 @@ class B2500DCard extends LitElement {
   }
 
   _getEntity(type) {
+    const mapping = {
+      daily_pv_charging: "production_today",
+      battery_percentage: "battery_percentage",
+      battery_capacity: "battery_capacity",
+      total_input_power: "solar_power",
+      input_1_power: "p1_power",
+      input_2_power: "p2_power",
+      total_output_power: "output_power",
+    };
+
     if (this.config.device) {
       return `sensor.${this.config.device}_${type}`;
     }
-    return this.config.entities?.[type] || null;
+
+    const externalType = mapping[type] ?? type;
+    return this.config.entities?.[externalType] || null;
   }
 
   _toggleSwitch(entityId, checked) {
@@ -538,7 +550,7 @@ class B2500DCard extends LitElement {
     const switchEntity = this._hass.states[`switch.${this.config.device}_adaptive_mode`];
 
 
-    return html`
+     return html`
       <div class="container">
         <div class="device">
           <!-- Header -->
@@ -562,7 +574,7 @@ class B2500DCard extends LitElement {
         <section class="grid">
           <!-- Solar -->
            ${this.config.solar ? html`
-          <article class="card solar">
+          <article class="card solar" @click=${() => this._handleMoreInfo(this._getEntity("total_input_power"))}>
             <div class="title">
               ${localize("card.solar", lang)}
               <div class="right-big">${this._solarPower}</div><div class="big-num-unit">W</div>
@@ -586,7 +598,7 @@ class B2500DCard extends LitElement {
 
           <!-- Output -->
           ${this.config.output ? html`
-          <article class="card">
+          <article class="card" @click=${() => this._handleMoreInfo(this._getEntity("total_output_power"))}>
               <div class="title">${localize("card.output", lang)}</div>
               <div class="subtitle">${localize("card.realtime", lang)}</div>
               <div class="flex-wrapper">
@@ -649,7 +661,7 @@ class B2500DCard extends LitElement {
 
           <!-- Production -->
           ${this.config.production ? html`
-          <article class="card">
+          <article class="card"  @click=${() => this._handleMoreInfo(this._getEntity("daily_pv_charging"))}>
             <div class="title">${localize("card.production", lang)}</div>
             <div class="subtitle">${localize("card.today", lang)}</div>
            <div class="flex-wrapper"><div class="big-num">${Number(this._productionToday).toFixed(2)}</div><div class="big-num-unit">kWh</div></div>
