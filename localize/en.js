@@ -30,14 +30,16 @@ export default {
     "battery": "Show Battery",
     "production": "Show Production",
     "settings": "Show Settings",
-    "max_input_power": "Maximum Input Power (W)"
+    "max_input_power": "Maximum Input Power (W)",
+    "custom_settings": "Custom Settings",
   },
   "helpers": {
     "device": "Enter the device short name (only ONE: either device OR entities).",
     "entities": "Alternative: object with entities (e.g. { \"solar_power\": \"sensor.x\" })",
     "compact": "Shows a more compact version of the card",
     "settings": "Only shown if device ID is used",
-    "max_input_power": "Maximum input power per input of the storage system"
+    "max_input_power": "Maximum input power per input of the storage system",
+    "custom_settings": "Add your custom settings here (entities mode only)",
   }
 };
 

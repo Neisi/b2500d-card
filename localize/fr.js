@@ -30,13 +30,15 @@ export default {
     "battery": "Afficher batterie",
     "production": "Afficher production",
     "settings": "Afficher paramètres",
-    "max_input_power": "Puissance d’entrée maximale (W)"
+    "max_input_power": "Puissance d’entrée maximale (W)",
+    "custom_settings": "Paramètres personnalisés",
   },
   "helpers": {
     "device": "Indiquez le nom abrégé de l’appareil (un seul : device OU entities).",
     "entities": "Alternative : objet avec entités (ex. { \"solar_power\": \"sensor.x\" })",
     "compact": "Affiche une version plus compacte de la carte",
     "settings": "Uniquement affiché si un ID d’appareil est utilisé",
-    "max_input_power": "Puissance d’entrée maximale par entrée du système de stockage"
+    "max_input_power": "Puissance d’entrée maximale par entrée du système de stockage",
+    "custom_settings": "Ajoutez vos paramètres personnalisés ici (mode entités uniquement)",
   }
 };

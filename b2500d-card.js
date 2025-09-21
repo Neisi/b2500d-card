@@ -9,7 +9,7 @@ const languages = { en, de, es, fr };
 
 function _getLangCode(langInput) {
   const raw = (langInput || (typeof navigator !== "undefined" && navigator.language) || "en").toString().toLowerCase();
-  return raw.split(/[_-]/)[0];
+  return raw.split(/[_-]/)[0]; 
 }
 
 function localize(key, langInput) {
@@ -161,7 +161,11 @@ class B2500DCard extends LitElement {
           display: inline-block;
         }
         
-      .card.flat{ box-shadow:none; padding:0; overflow:hidden }
+      .card.flat{ 
+      box-shadow:none; 
+      padding:0; 
+      overflow: visible;
+      }
 
       .title {
         display:flex; 
@@ -375,6 +379,7 @@ class B2500DCard extends LitElement {
   setConfig(config) {
     const { device, entities } = config;
 
+    // Prüfen: entweder device oder entities, aber nicht beides
     if (device && entities) {
       throw new Error(localize("errors.both", this._hass?.language));
     }
@@ -412,18 +417,40 @@ class B2500DCard extends LitElement {
     } else if (this.config.entities) {
       // Entities-Modus
       const e = this.config.entities;
-      const getState = (entity) => hass.states[entity]?.state || 0;
+    
+      const getNumericValue = (entity) => {
+        const stateObj = this._hass.states[entity];
+        if (!stateObj) return 0;
+    
+        const value = Number(stateObj.state) || 0;
+        const unit = stateObj.attributes?.unit_of_measurement;
+    
+        if (unit?.toLowerCase() === "kwh") {
+          return value;
+        }
 
-      this._solarPower = getState(e.solar_power);
-      this._p1 = getState(e.p1_power);
-      this._p2 = getState(e.p2_power);
-      this._outputPower = getState(e.output_power);
-      this._batteryPercent = getState(e.battery_percentage);
-      this._batteryKwh = getState(e.battery_capacity) / 1000;
-      this._productionToday = getState(e.production_today) / 1000;
+        if (unit?.toLowerCase() === "wh") {
+          return value / 1000;
+        }
 
-      //blende die Settingskarte im Entitätsmodus aus
-      this.config.settings = false;
+        return value;
+      };
+    
+      this._solarPower = Number(this._hass.states[e.solar_power]?.state) || 0;
+      this._p1 = Number(this._hass.states[e.p1_power]?.state) || 0;
+      this._p2 = Number(this._hass.states[e.p2_power]?.state) || 0;
+      this._outputPower = Number(this._hass.states[e.output_power]?.state) || 0;
+      this._batteryPercent = Number(this._hass.states[e.battery_percentage]?.state) || 0;
+    
+      this._batteryKwh = e.battery_capacity ? getNumericValue(e.battery_capacity) : 0;
+      this._productionToday = e.production_today ? getNumericValue(e.production_today) : 0;
+    
+
+      if (this.config.custom_settings?.length) {
+        this.config.settings = true;
+      }else{
+         this.config.settings = false;
+      }
     }
     this.requestUpdate();
   }
@@ -437,24 +464,24 @@ class B2500DCard extends LitElement {
     this.dispatchEvent(event);
   }
 
-  _getEntity(type) {
-    const mapping = {
-      daily_pv_charging: "production_today",
-      battery_percentage: "battery_percentage",
-      battery_capacity: "battery_capacity",
-      total_input_power: "solar_power",
-      input_1_power: "p1_power",
-      input_2_power: "p2_power",
-      total_output_power: "output_power",
-    };
-
-    if (this.config.device) {
-      return `sensor.${this.config.device}_${type}`;
+    _getEntity(type) {
+      const mapping = {
+        daily_pv_charging: "production_today",
+        battery_percentage: "battery_percentage",
+        battery_capacity: "battery_capacity",
+        total_input_power: "solar_power",
+        input_1_power: "p1_power",
+        input_2_power: "p2_power",
+        total_output_power: "output_power",
+      };
+    
+      if (this.config.device) {
+        return `sensor.${this.config.device}_${type}`;
+      }
+    
+      const externalType = mapping[type] ?? type;
+      return this.config.entities?.[externalType] || null;
     }
-
-    const externalType = mapping[type] ?? type;
-    return this.config.entities?.[externalType] || null;
-  }
 
   _toggleSwitch(entityId, checked) {
     this._hass.callService("switch", checked ? "turn_on" : "turn_off", {
@@ -493,16 +520,20 @@ class B2500DCard extends LitElement {
     if (this.config.compact) {
       const percent = this._batteryPercent ?? 0;
 
+      // Farbe bestimmen
       let color = "green";
       if (percent <= 19) {
         color = "red";
       } else if (percent <= 59) {
         color = "orange";
       }
+      // Icon abhängig vom Prozentwert wählen (auf nächste 10 abrunden)
       let icon = "";
       if (percent >= 100) {
+        // Sonderfall: 100% hat eigenes Icon
         icon = "mdi:battery";
       } else if (percent < 10) {
+        // Unter 10% gibt es nur die Outline-Version
         icon = "mdi:battery-outline";
       } else {
         let level = Math.floor(percent / 10) * 10;
@@ -550,7 +581,7 @@ class B2500DCard extends LitElement {
     const switchEntity = this._hass.states[`switch.${this.config.device}_adaptive_mode`];
 
 
-     return html`
+    return html`
       <div class="container">
         <div class="device">
           <!-- Header -->
@@ -658,7 +689,6 @@ class B2500DCard extends LitElement {
               </div>
             </article>` : ''}
 
-
           <!-- Production -->
           ${this.config.production ? html`
           <article class="card"  @click=${() => this._handleMoreInfo(this._getEntity("daily_pv_charging"))}>
@@ -667,69 +697,150 @@ class B2500DCard extends LitElement {
            <div class="flex-wrapper"><div class="big-num">${Number(this._productionToday).toFixed(2)}</div><div class="big-num-unit">kWh</div></div>
             <div class="icon"><ha-icon icon="mdi:chart-bar"></ha-icon>︎</div>
           </article>` : ''}
+       
+       <!-- Settings Section -->
+    ${this.config.settings || (this.config.custom_settings?.length && this._hass) ? html`
+  <div class="card flat" style="grid-column:1 / -1">
 
-          <!-- Settings -->
-          ${this.config.settings ? html`
-          <div class="card flat" style="grid-column:1 / -1">
-            <div class="row">
-              <div class="left"><ha-icon icon="mdi:cog"></ha-icon><div style="font-weight:600">${localize("labels.charging_mode", lang)}</div></div>
-              <div class="right">
-                ${selectEntity
-          ? html`
-                      <ha-select
-                        .value=${selectEntity.state}
-                        @selected=${(e) => {
-              const val = e.target.value;
-              this._hass.callService("select", "select_option", {
-                entity_id: selectEntity.entity_id,
-                option: val
-              });
-            }}
-                      >
-                        ${(selectEntity.attributes?.options || []).map(
-              (opt) => html`<mwc-list-item value=${opt}>
-                            ${localize(opt === "Simultaneous Charging/Discharging" ? "labels.simul_charge" : "labels.full_then_discharge", lang)}
-                          </mwc-list-item>`
-            )}
-                      </ha-select>
-                    `
-          : html`<span>-</span>`}
+    <!-- Device Settings (nur im Device-Mode, wie bisher) -->
+    ${this.config.device && this.config.settings ? html`
+      <div class="row">
+        <div class="left"><ha-icon icon="mdi:cog"></ha-icon><div style="font-weight:600">${localize("labels.charging_mode", lang)}</div></div>
+        <div class="right">
+          ${selectEntity
+            ? html`
+              <ha-select
+                .value=${selectEntity.state}
+                @selected=${(e) => {
+                  const val = e.target.value;
+                  this._hass.callService("select", "select_option", {
+                    entity_id: selectEntity.entity_id,
+                    option: val
+                  });
+                }}
+              >
+                ${(selectEntity.attributes?.options || []).map(
+                  (opt) => html`<mwc-list-item value=${opt}>
+                    ${localize(opt === "Simultaneous Charging/Discharging" ? "labels.simul_charge" : "labels.full_then_discharge", lang)}
+                  </mwc-list-item>`
+                )}
+              </ha-select>
+            `
+            : html`<span>-</span>`}
+        </div>
+      </div>
+      <div class="divider"></div>
+
+      <div class="row">
+        <div class="left"><ha-icon icon="mdi:power-plug-battery"></ha-icon><div style="font-weight:600">${localize("labels.discharge_mode", lang)}</div></div>
+        <div class="right">
+          ${switchEntity
+            ? html`
+              <ha-switch
+                .checked=${switchEntity.state === "on"}
+                @change=${(e) => {
+                  const service = e.target.checked ? "turn_on" : "turn_off";
+                  this._hass.callService("switch", service, { entity_id: switchEntity.entity_id });
+                }}
+              ></ha-switch>
+            `
+            : html`<span>-</span>`}
+        </div>
+      </div>
+      <div class="divider"></div>
+
+      <div class="row">
+        <div class="left">
+          <ha-icon icon="mdi:transmission-tower-import"></ha-icon>
+          <div style="font-weight:600">${localize("labels.surplus", lang)}</div>
+        </div>
+        <div class="right">
+          <ha-switch
+            style="margin-left:auto"
+            .checked=${this._hass.states[`switch.${this.config.device}_surplus_feed_in`]?.state === "on"}
+            @change=${(e) => this._toggleSwitch(`switch.${this.config.device}_surplus_feed_in`, e.target.checked)}>
+          </ha-switch>
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Custom Settings -->
+        ${this.config.custom_settings?.length && this._hass  ? html`
+          ${this.config.custom_settings.map((item, index) => {
+            const entity = this._hass.states[item.entity];
+            if (!entity) return html``;
+    
+            const icon = item.icon || entity.attributes.icon;
+            const name = item.name || entity.attributes.friendly_name || item.entity;
+            const renderDivider = index < this.config.custom_settings.length - 1 
+              ? html`<div class="divider"></div>` 
+              : html``;
+    
+            // Switch
+            if (entity.entity_id.startsWith("switch.")) {
+              return html`
+                <div class="row">
+                  <div class="left">
+                    ${icon ? html`<ha-icon icon="${icon}"></ha-icon>` : ""}
+                    <div style="font-weight:600">${name}</div>
+                  </div>
+                  <div class="right">
+                    <ha-switch
+                      .checked=${entity.state === "on"}
+                      @change=${(e) => {
+                        const service = e.target.checked ? "turn_on" : "turn_off";
+                        this._hass.callService("switch", service, { entity_id: entity.entity_id });
+                      }}>
+                    </ha-switch>
+                  </div>
+                </div>
+                ${renderDivider}
+              `;
+            }
+    
+            // Select
+            if (entity.entity_id.startsWith("select.")) {
+              return html`
+                <div class="row">
+                  <div class="left">
+                    ${icon ? html`<ha-icon icon="${icon}"></ha-icon>` : ""}
+                    <div style="font-weight:600">${name}</div>
+                  </div>
+                  <div class="right">
+                    <ha-select
+                      .value=${entity.state}
+                      @selected=${(e) => {
+                        const val = e.target.value;
+                        this._hass.callService("select", "select_option", {
+                          entity_id: entity.entity_id,
+                          option: val
+                        });
+                      }}>
+                      ${(entity.attributes?.options || []).map(
+                        (opt) => html`<mwc-list-item value=${opt}>${opt}</mwc-list-item>`
+                      )}
+                    </ha-select>
+                  </div>
+                </div>
+                ${renderDivider}
+              `;
+            }
+    
+            // Fallback (read-only)
+            return html`
+              <div class="row">
+                <div class="left">
+                  ${icon ? html`<ha-icon icon="${icon}"></ha-icon>` : ""}
+                  <div style="font-weight:600">${name}</div>
+                </div>
+                <div class="right">${entity.state}</div>
               </div>
-            </div>
-            <div class="divider"></div>
-            <div class="row">
-              <div class="left"><ha-icon icon="mdi:power-plug-battery"></ha-icon><div style="font-weight:600">${localize("labels.discharge_mode", lang)}</div></div>
-              <div class="right">
-                ${switchEntity
-          ? html`
-                      <ha-switch
-                        .checked=${switchEntity.state === "on"}
-                        @change=${(e) => {
-              const service = e.target.checked ? "turn_on" : "turn_off";
-              this._hass.callService("switch", service, {
-                entity_id: switchEntity.entity_id
-              });
-            }}
-                      ></ha-switch>
-                    `
-          : html`<span>-</span>`}
-              </div>
-            </div>
-            <div class="divider"></div>
-            <div class="row">
-              <div class="left">
-                <ha-icon icon="mdi:transmission-tower-import"></ha-icon>
-                <div style="font-weight:600">${localize("labels.surplus", lang)}</div>
-              </div>
-              <div class="right">
-                <ha-switch
-                  style="margin-left:auto"
-                  .checked=${this._hass.states[`switch.${this.config.device}_surplus_feed_in`]?.state === "on"}
-                  @change=${(e) => this._toggleSwitch(`switch.${this.config.device}_surplus_feed_in`, e.target.checked)}>
-                </ha-switch>
-              </div>
-            </div>
-          </div>` : ''}
+              ${renderDivider}
+            `;
+          })}
+        ` : ''}
+      </div>
+    ` : ''}
         </section>
       </div>
     `;
@@ -760,6 +871,7 @@ class B2500DCardEditor extends LitElement {
 
 
   setConfig(config) {
+    // Defaults behalten, damit Felder sichtbar sind
     this._config = {
       output: true,
       battery: true,
@@ -790,6 +902,7 @@ class B2500DCardEditor extends LitElement {
 
     const newConfig = { ...ev.detail.value };
 
+    // Wenn entities leer oder alle Werte leer, entfernen
     if (newConfig.entities) {
       const isEmpty = Object.values(newConfig.entities).every(
         (v) => v === null || v === undefined || v === ""
@@ -811,7 +924,7 @@ class B2500DCardEditor extends LitElement {
   }
 
   _computeLabel(field) {
-    const name = field?.name || field; // falls field ein String ist
+    const name = field?.name || field; 
     const lang = this._hass?.locale?.language || this._hass?.language || navigator?.language || "en";
     return localize(`editor.${name}`, lang);
   }
@@ -844,13 +957,26 @@ class B2500DCardEditor extends LitElement {
           }
         }
       },
+      {
+          name: "custom_settings",
+          selector: {
+            object: {
+              properties: {
+                entity: { selector: { entity: {} } },
+                name: { selector: { text: {} } },
+                icon: { selector: { text: {} } }
+              }
+            }
+          },
+        },
       { name: "compact", selector: { boolean: {} } },
       { name: "solar", selector: { boolean: {} } },
       { name: "output", selector: { boolean: {} } },
       { name: "battery", selector: { boolean: {} } },
       { name: "production", selector: { boolean: {} } },
       { name: "settings", selector: { boolean: {} } },
-      { name: "max_input_power", selector: { number: { min: 100, max: 5000, step: 50 } } },
+      { name: "max_input_power", selector: { number: { min: 100, max: 5000, step: 50 } },
+      },
     ];
 
     return html`
@@ -868,4 +994,3 @@ class B2500DCardEditor extends LitElement {
 
 
 customElements.define("b2500d-card-editor", B2500DCardEditor);
-

@@ -112,7 +112,7 @@ You **must provide exactly one** of the following parameters:
 | Name       | Type   | Description |
 |------------|--------|-------------|
 | `device`   | string | The name of your device. Example: if the sensor for battery percentage is `sensor.speicher_1_links_battery_percentage`, then `<speicher_1_links>` is the device name. |
-| `entities` | object | A collection of individual entities if you don’t want to provide a full `device`. In this mode, the settings card is hidden automatically. |
+| `entities` | object | A collection of individual entities if you don’t want to provide a full `device`. In this mode, the settings card is hidden automatically by default. |
 
 ---
 
@@ -123,12 +123,15 @@ If you provide individual entities instead of `device`, the object looks like th
 | Key                   | Type   | Description |
 |------------------------|--------|-------------|
 | `battery_percentage`   | string | Battery charge sensor (%) |
-| `battery_capacity`     | string | Available battery capacity (Wh) |
+| `battery_capacity`     | string | Available battery capacity (**Wh** or **kWh**) |
 | `solar_power`          | string | Total solar power sensor |
 | `p1_power`             | string | PV string 1 sensor |
 | `p2_power`             | string | PV string 2 sensor |
 | `output_power`         | string | Total output power sensor |
-| `production_today`     | string | Daily PV generation sensor (Wh) |
+| `production_today`     | string | Daily PV generation sensor (**Wh** or **kWh**) |
+
+ℹ️ **Note:**  
+The card automatically detects the unit of measurement (`Wh` or `kWh`) for `battery_capacity` and `production_today` and converts values to `kWh` internally.
 
 ---
 You don’t have to provide all entities. Missing entities are automatically set to 0.  
@@ -146,6 +149,21 @@ For the compact card, it’s enough to provide e.g. `battery_percentage`, `solar
 | `solar`         | boolean | Show solar card                                           | `true` |
 | `compact`       | boolean | Show compact version                                      | `false` |
 | `max_input_power` | number | Maximum input power per input (W), for scaling P1/P2 bars | `600` |
+
+### ⚙️ Custom Settings (`custom_settings`)
+
+If you want to add your own switches or select entities to the settings card, even in **entities mode**, you can use the optional `custom_settings` parameter.  
+
+Each item in the array can define:  
+
+| Key      | Type   | Description |
+|----------|--------|-------------|
+| `entity` | string | The entity ID of the switch or select you want to show. |
+| `name`   | string | Optional: Display name for the entity.  |
+| `icon`   | string | Optional: Icon to display (`mdi:` format).  |
+
+ℹ️ **Note:**  
+`settings` paramter will be ignored or automatically set to  `true`.
 
 ### 📘 Configuration
 
@@ -200,14 +218,33 @@ compact: true
 ```
 
 ##### With Entities
-Example using entities instead of `device`:
+Example using entities `instead of device`:
 ```yaml
 type: custom:b2500d-card
+name: My Storage
 entities:
   solar_power: sensor.my_storage_total_input_power
   battery_capacity: sensor.my_storage_battery_capacity
   ...
+```
+with custom settings:
+
+```yaml
+type: custom:b2500d-card
+settings: true
 name: My Storage
+entities:
+  battery_percentage: sensor.my_battery_percentage
+  battery_capacity: sensor.my_battery_capacity
+  solar_power: sensor.my_solar_power
+  output_power: sensor.my_output_power
+  ....
+custom_settings:
+  - entity: switch.my_storage_surplus_feed_in
+    name: "Surplus Feed-in"
+    icon: mdi:transmission-tower-import
+  - entity: select.my_charging_mode
+    name: "Charging Mode"
 ```
 
 #### Configuration with Visual Editor (since v1.4.0)

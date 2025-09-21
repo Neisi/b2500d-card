@@ -30,14 +30,16 @@ export default {
     "battery": "Batterie anzeigen",
     "production": "Produktion anzeigen",
     "settings": "Einstellungen anzeigen",
-    "max_input_power": "Maximale Eingangsleistung (W)"
+    "max_input_power": "Maximale Eingangsleistung (W)",
+    "custom_settings" : "Benutzerdefinierte Einstellungen",
   },
   "helpers": {
     "device": "Gib die Geräte-Kurzbezeichnung an (nur ODER, nicht beides: device ODER entities).",
     "entities": "Alternativ: Objekt mit Entitäten (z. B. { \"solar_power\": \"sensor.x\" })",
     "compact": "Zeigt eine kompaktere Variante der Karte",
     "settings": "Wird nur angezeigt, wenn Geräte-ID verwendet wird",
-    "max_input_power": "Maximale Eingangsleistung am Speicher pro Eingang"
+    "max_input_power": "Maximale Eingangsleistung am Speicher pro Eingang",
+    "custom_settings" : "Füge hier deine benutzerdefinierten Einstellungen hinzu (nur Entitiy Modus)",
   }
 };
 
