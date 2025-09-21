@@ -9,7 +9,7 @@ const languages = { en, de, es, fr };
 
 function _getLangCode(langInput) {
   const raw = (langInput || (typeof navigator !== "undefined" && navigator.language) || "en").toString().toLowerCase();
-  return raw.split(/[_-]/)[0]; 
+  return raw.split(/[_-]/)[0];
 }
 
 function localize(key, langInput) {
@@ -581,7 +581,7 @@ class B2500DCard extends LitElement {
     const switchEntity = this._hass.states[`switch.${this.config.device}_adaptive_mode`];
 
 
-    return html`
+     return html`
       <div class="container">
         <div class="device">
           <!-- Header -->
