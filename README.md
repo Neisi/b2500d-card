@@ -151,6 +151,7 @@ For the compact card, it’s enough to provide e.g. `battery_percentage`, `solar
 | `max_input_power` | number | Maximum input power per input (W), for scaling P1/P2 bars | `600` |
 | `p3_power`       | string | PV string 3 sensor                                        | `null`|
 | `p4_power`        | string | PV string 4 sensor                                       | `null`|
+| `last_update`        | string | ISO 8601 string for last update                        | `n/a`|
 
 ### ⚙️ Custom Settings (`custom_settings`)
 

@@ -7,6 +7,7 @@ import fr from "./localize/fr.js";
 
 const languages = { en, de, es, fr };
 
+
 function _getLangCode(langInput) {
   const raw = (langInput || (typeof navigator !== "undefined" && navigator.language) || "en").toString().toLowerCase();
   return raw.split(/[_-]/)[0]; 
@@ -133,7 +134,6 @@ class B2500DCard extends LitElement {
         grid-row: span 2;
         display:flex;
         flex-direction:column;
-        justify-content:center;
       }
 
         .card {
@@ -173,7 +173,8 @@ class B2500DCard extends LitElement {
         baseline; gap:1px;
         font-weight:600; 
         color:var(--text);
-        font-size: var(--ha-font-size-l)
+        font-size: var(--ha-font-size-l);
+        margin-bottom: 10px;
       }
 
       .right-big {
@@ -374,40 +375,7 @@ class B2500DCard extends LitElement {
     super();
   }
 
-
-
   setConfig(config) {
-    const { device, entities } = config;
-
-    // Prüfen: entweder device oder entities, aber nicht beides
-    if (device && entities) {
-      throw new Error(localize("errors.both", this._hass?.language));
-    }
-    if (!device && !entities) {
-      throw new Error(localize("errors.missing", this._hass?.language));
-    }
-
-
-    if (entities) {
-        // Nur die relevanten Keys p1–p4 prüfen
-        const powerKeys = ["p1_power", "p2_power", "p3_power", "p4_power"]
-          .filter(k => entities[k] !== undefined);
-    
-        const valid2 =
-          powerKeys.length === 2 &&
-          powerKeys.includes("p1_power") &&
-          powerKeys.includes("p2_power");
-    
-        const valid4 =
-          powerKeys.length === 4 &&
-          ["p1_power", "p2_power", "p3_power", "p4_power"].every(k =>
-            powerKeys.includes(k)
-          );
-    
-        if (!valid2 && !valid4) {
-          throw new Error(localize("errors.entities_invalid", this._hass?.language));
-        }
-    }
     this.config = {
       output: true,
       battery: true,
@@ -417,7 +385,39 @@ class B2500DCard extends LitElement {
       compact: false,
       ...config
     };
+    if (this._hass) {
+      this._validateConfig(this.config);
+    } else {
+        this._delayedValidation = true;
+    }
   }
+
+    _validateConfig(config) {
+      const lang = this._hass?.language || "en";
+      const { device, entities } = config;
+    
+      if (device && entities) {
+        this._configError = localize("errors.both", lang);
+        return false;
+      }
+      if (!device && !entities) {
+        this._configError = localize("errors.missing", lang);
+        return false;
+      }
+    
+      if (entities) {
+        const powerKeys = ["p1_power","p2_power","p3_power","p4_power"].filter(k => entities[k] !== undefined);
+        const valid2 = powerKeys.length === 2 && powerKeys.includes("p1_power") && powerKeys.includes("p2_power");
+        const valid4 = powerKeys.length === 4 && ["p1_power","p2_power","p3_power","p4_power"].every(k => powerKeys.includes(k));
+        if (!valid2 && !valid4) {
+          this._configError = localize("errors.entities_invalid", lang);
+          return false;
+        }
+      }
+    
+      this._configError = null;
+      return true;
+    }
 
   set hass(hass) {
     this._hass = hass;
@@ -435,6 +435,8 @@ class B2500DCard extends LitElement {
       this._batteryPercent = getState(`sensor.${device}_battery_percentage`);
       this._batteryKwh = getState(`sensor.${device}_battery_capacity`) / 1000;
       this._productionToday = getState(`sensor.${device}_daily_pv_charging`) / 1000;
+      this._lastUpdate = this._formatLastUpdate(this._hass.states[`sensor.${this.config.device}_last_update`]?.state) || "n/a";
+      
     } else if (this.config.entities) {
       // Entities-Modus
       const e = this.config.entities;
@@ -472,13 +474,18 @@ class B2500DCard extends LitElement {
     
       this._batteryKwh = e.battery_capacity ? getNumericValue(e.battery_capacity) : 0;
       this._productionToday = e.production_today ? getNumericValue(e.production_today) : 0;
-    
+      this._lastUpdate = this._formatLastUpdate(this._hass.states[e.last_update]?.state) || "n/a";
+
 
       if (this.config.custom_settings?.length) {
         this.config.settings = true;
       }else{
          this.config.settings = false;
       }
+    }
+    if (this._delayedValidation) {
+        this._validateConfig(this.config);
+        this._delayedValidation = false;
     }
     this.requestUpdate();
   }
@@ -537,6 +544,10 @@ class B2500DCard extends LitElement {
 
 
   render() {
+     if (this._configError) {
+        return html`<ha-alert alert-type="error">${this._configError}</ha-alert>`;
+     }
+
     const solar = Number(this._solarPower);
     const output = Number(this._outputPower);
 
@@ -546,6 +557,8 @@ class B2500DCard extends LitElement {
       : output > solar && this._batteryPercent > 0
         ? 'discharging'
         : '';
+
+
 
     if (this.config.compact) {
       const percent = this._batteryPercent ?? 0;
@@ -623,7 +636,7 @@ class B2500DCard extends LitElement {
               ${this.config.name || this.config.device}
             </div>
             <div style="font-size:10px; color:var(--muted);">
-              ${localize("labels.last_update", lang)}: ${this._formatLastUpdate(this._hass.states[`sensor.${this.config.device}_last_update`]?.state)}
+              ${localize("labels.last_update", lang)}: ${this._lastUpdate}
             </div>
           </div>
 
@@ -934,6 +947,8 @@ class B2500DCardEditor extends LitElement {
       ...config,
     };
   }
+  
+
 
   set hass(hass) {
     this._hass = hass;
