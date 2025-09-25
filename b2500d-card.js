@@ -9,7 +9,7 @@ const languages = { en, de, es, fr };
 
 function _getLangCode(langInput) {
   const raw = (langInput || (typeof navigator !== "undefined" && navigator.language) || "en").toString().toLowerCase();
-  return raw.split(/[_-]/)[0];
+  return raw.split(/[_-]/)[0]; 
 }
 
 function localize(key, langInput) {
@@ -387,6 +387,27 @@ class B2500DCard extends LitElement {
       throw new Error(localize("errors.missing", this._hass?.language));
     }
 
+
+    if (entities) {
+        // Nur die relevanten Keys p1–p4 prüfen
+        const powerKeys = ["p1_power", "p2_power", "p3_power", "p4_power"]
+          .filter(k => entities[k] !== undefined);
+    
+        const valid2 =
+          powerKeys.length === 2 &&
+          powerKeys.includes("p1_power") &&
+          powerKeys.includes("p2_power");
+    
+        const valid4 =
+          powerKeys.length === 4 &&
+          ["p1_power", "p2_power", "p3_power", "p4_power"].every(k =>
+            powerKeys.includes(k)
+          );
+    
+        if (!valid2 && !valid4) {
+          throw new Error(localize("errors.entities_invalid", this._hass?.language));
+        }
+    }
     this.config = {
       output: true,
       battery: true,
@@ -439,6 +460,13 @@ class B2500DCard extends LitElement {
       this._solarPower = Number(this._hass.states[e.solar_power]?.state) || 0;
       this._p1 = Number(this._hass.states[e.p1_power]?.state) || 0;
       this._p2 = Number(this._hass.states[e.p2_power]?.state) || 0;
+      this._p3 = this._hass.states[e.p3_power]?.state !== undefined
+          ? Number(this._hass.states[e.p3_power].state)
+          : null;
+        
+      this._p4 = this._hass.states[e.p4_power]?.state !== undefined
+          ? Number(this._hass.states[e.p4_power].state)
+          : null;
       this._outputPower = Number(this._hass.states[e.output_power]?.state) || 0;
       this._batteryPercent = Number(this._hass.states[e.battery_percentage]?.state) || 0;
     
@@ -472,6 +500,8 @@ class B2500DCard extends LitElement {
         total_input_power: "solar_power",
         input_1_power: "p1_power",
         input_2_power: "p2_power",
+        input_3_power: "p3_power",
+        input_4_power: "p4_power",
         total_output_power: "output_power",
       };
     
@@ -576,12 +606,15 @@ class B2500DCard extends LitElement {
     const maxInputPower = this.config.max_input_power || 600;
     const p1Pct = Math.round((this._p1 / maxInputPower) * 100);
     const p2Pct = Math.round((this._p2 / maxInputPower) * 100);
+    const p3Pct = Math.round((this._p3 / maxInputPower) * 100);
+    const p4Pct = Math.round((this._p4 / maxInputPower) * 100);
+
 
     const selectEntity = this._hass.states[`select.${this.config.device}_charging_mode`];
     const switchEntity = this._hass.states[`switch.${this.config.device}_adaptive_mode`];
 
 
-     return html`
+    return html`
       <div class="container">
         <div class="device">
           <!-- Header -->
@@ -614,15 +647,24 @@ class B2500DCard extends LitElement {
             <div class="barlabels">
               <div>${this._p1} W</div>
               <div>${this._p2} W</div>
+              ${this._p3 != null ? html`<div>${this._p3} W</div>` : ""}
+              ${this._p4 != null ? html`<div>${this._p4} W</div>` : ""}
             </div>
             <div class="barwrap">
-              <div class="bar p1"><div class="fill" style="width:${p1Pct}%"></div></div>
-              <div class="bar p2 r"><div class="fill" style="width:${p2Pct}%"></div></div>
+              <div class="bar"><div class="fill" style="width:${p1Pct}%"></div></div>
+              <div class="bar  ${this._p3 == null && this._p4 == null ? "r" : ""}"><div class="fill" style="width:${p2Pct}%"></div></div>
+            ${this._p3 != null ? html`<div class="bar r"><div class="fill" style="width:${p3Pct}%"></div></div>`
+              : ""}
+            ${this._p4 != null ? html`<div class="bar r"><div class="fill" style="width:${p4Pct}%"></div></div>`
+              : ""}
             </div>
             <div class="barlabels">
               <div class="hint">P1</div>
               <div class="hint">P2</div>
+            ${this._p3 != null ? html`<div class="hint">P3</div>` : ""}
+            ${this._p4 != null ? html`<div class="hint">P4</div>` : ""}
             </div>
+            
             </div>
             <div class="icon"><ha-icon icon="mdi:solar-power-variant-outline"></ha-icon>︎</div>
           </article>` : ''}

@@ -1,7 +1,8 @@
 export default {
   "errors": {
     "both": "Bitte entweder 'device' oder 'entities' angeben, nicht beides.",
-    "missing": "Du musst entweder 'device' oder 'entities' angeben."
+    "missing": "Du musst entweder 'device' oder 'entities' angeben.",
+    "entities_invalid" : "Erlaubt sind nur [p1_power + p2_power] oder [p1_power + p2_power + p3_power + p4_power].",
   },
   "labels": {
     "last_update": "Aktualisierung",
