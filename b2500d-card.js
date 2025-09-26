@@ -1051,3 +1051,11 @@ class B2500DCardEditor extends LitElement {
 
 
 customElements.define("b2500d-card-editor", B2500DCardEditor);
+
+window.customCards = window.customCards || [];
+window.customCards.push({
+   type: "b2500d-card",
+   name: "Solar Storage Card",
+   preview: false,
+   description: "Visualizing solar storage systems",
+});
