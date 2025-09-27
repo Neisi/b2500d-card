@@ -651,17 +651,17 @@ class B2500DCard extends LitElement {
         <section class="grid">
           <!-- Solar -->
            ${this.config.solar ? html`
-          <article class="card solar" @click=${() => this._handleMoreInfo(this._getEntity("total_input_power"))}>
+			<article class="card solar">
             <div class="title">
               ${localize("card.solar", lang)}
-              <div class="right-big">${this._solarPower}</div><div class="big-num-unit">W</div>
+              <div class="right-big" @click=${() => this._handleMoreInfo(this._getEntity("total_input_power"))}>${this._solarPower}</div><div class="big-num-unit">W</div>
             </div>
             <div style="width: 85%;">
             <div class="barlabels">
-              <div>${this._p1} W</div>
-              <div>${this._p2} W</div>
-              ${this._p3 != null ? html`<div>${this._p3} W</div>` : ""}
-              ${this._p4 != null ? html`<div>${this._p4} W</div>` : ""}
+              <div @click=${() => this._handleMoreInfo(this._getEntity("input_1_power"))}>${this._p1} W</div>
+              <div @click=${() => this._handleMoreInfo(this._getEntity("input_2_power"))}>${this._p2} W</div>
+              ${this._p3 != null ? html`<div @click=${() => this._handleMoreInfo(this._getEntity("input_3_power"))}>${this._p3} W</div>` : ""}
+              ${this._p4 != null ? html`<div @click=${() => this._handleMoreInfo(this._getEntity("input_4_power"))}>${this._p4} W</div>` : ""}
             </div>
             <div class="barwrap">
               <div class="bar"><div class="fill" style="width:${p1Pct}%"></div></div>
