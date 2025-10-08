@@ -219,8 +219,8 @@ class B2500DCard extends LitElement {
         right:0; left:auto;
         background: rgb(84, 158,164);
       }
-      .barlabels{ display:flex; justify-content:space-between; margin-top:8px; font-weight:400; color: #549EA4; }
-      .barlabels .hint{ color: #549EA4; font-weight:400; font-size:12px; margin-top:2px }
+      .barlabels{ display:flex; justify-content:space-around; margin-top:8px; font-weight:400; color: #549EA4; align-items: center; }
+      .barlabels .hint{ color: #549EA4; font-weight:400; font-size:12px; margin-top:2px; }
 
       .battery{
         display:flex; align-items:center; justify-content:center; padding:10px 0 4px;
@@ -384,6 +384,7 @@ class B2500DCard extends LitElement {
       settings: true,
       solar: true,
       compact: false,
+      icon: true,
       ...config
     };
     if (this._hass) {
@@ -533,7 +534,7 @@ class B2500DCard extends LitElement {
     const date = new Date(isoString);
 
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); // Monate 0-11
+    const month = String(date.getMonth() + 1).padStart(2, '0'); 
     const day = String(date.getDate()).padStart(2, '0');
     const hour = String(date.getHours()).padStart(2, '0');
     const minute = String(date.getMinutes()).padStart(2, '0');
@@ -544,40 +545,20 @@ class B2500DCard extends LitElement {
 
 
 
-  render() {
-     if (this._configError) {
-        return html`<ha-alert alert-type="error">${this._configError}</ha-alert>`;
-     }
+//RENDER COMPACT
+ _renderCompact(batteryClass){
+     const percent = this._batteryPercent ?? 0;
 
-    const solar = Number(this._solarPower);
-    const output = Number(this._outputPower);
-
-    const lang = this._hass?.language || "en";
-    const batteryClass = solar > output && this._batteryPercent < 100
-      ? 'charging'
-      : output > solar && this._batteryPercent > 0
-        ? 'discharging'
-        : '';
-
-
-
-    if (this.config.compact) {
-      const percent = this._batteryPercent ?? 0;
-
-      // Farbe bestimmen
       let color = "green";
       if (percent <= 19) {
         color = "red";
       } else if (percent <= 59) {
         color = "orange";
       }
-      // Icon abhängig vom Prozentwert wählen (auf nächste 10 abrunden)
       let icon = "";
       if (percent >= 100) {
-        // Sonderfall: 100% hat eigenes Icon
         icon = "mdi:battery";
       } else if (percent < 10) {
-        // Unter 10% gibt es nur die Outline-Version
         icon = "mdi:battery-outline";
       } else {
         let level = Math.floor(percent / 10) * 10;
@@ -614,14 +595,52 @@ class B2500DCard extends LitElement {
           </div>
         </div>
       `;
+ }
+
+//RENDER UNIT
+_renderUnit(batteryClass){
+  return html`  
+  <div class="unit">
+     <div class="battery-bar">
+       <div class="battery-fill ${batteryClass}" style="height:${Math.min(this._batteryPercent, 98)}%"></div>
+     </div>
+  </div>
+    `
+}
+
+
+/////////////////
+// RENDER
+/////////////////
+  render() {
+     if (this._configError) {
+        return html`<ha-alert alert-type="error">${this._configError}</ha-alert>`;
+     }
+
+    const solar = Number(this._solarPower);
+    const output = Number(this._outputPower);
+
+    const lang = this._hass?.language || "en";
+    const batteryClass = solar > output && this._batteryPercent < 100
+      ? 'charging'
+      : output > solar && this._batteryPercent > 0
+        ? 'discharging'
+        : '';
+
+    if (this.config.compact) {
+      return this._renderCompact(batteryClass);
     }
 
     // Fallback: 600 wenn nix übergeben (standard beim b2500d)
     const maxInputPower = this.config.max_input_power || 600;
+    const maxInputPower2 = this.config.max_input_power2 || 600;
+    const maxInputPower3 = this.config.max_input_power3 || 600;
+    const maxInputPower4 = this.config.max_input_power4 || 600;
+    
     const p1Pct = Math.round((this._p1 / maxInputPower) * 100);
-    const p2Pct = Math.round((this._p2 / maxInputPower) * 100);
-    const p3Pct = Math.round((this._p3 / maxInputPower) * 100);
-    const p4Pct = Math.round((this._p4 / maxInputPower) * 100);
+    const p2Pct = Math.round((this._p2 / maxInputPower2) * 100);
+    const p3Pct = Math.round((this._p3 / maxInputPower3) * 100);
+    const p4Pct = Math.round((this._p4 / maxInputPower4) * 100);
 
 
     const selectEntity = this._hass.states[`select.${this.config.device}_charging_mode`];
@@ -642,11 +661,7 @@ class B2500DCard extends LitElement {
           </div>
 
           <!-- Unit mit Akku-Balken -->
-          <div class="unit">
-            <div class="battery-bar">
-              <div class="battery-fill ${batteryClass}" style="height:${Math.min(this._batteryPercent, 98)}%"></div>
-            </div>
-          </div>
+           ${this.config.icon ? this._renderUnit(batteryClass):""}
         </div>
 
         <section class="grid">
@@ -667,9 +682,9 @@ class B2500DCard extends LitElement {
             <div class="barwrap">
               <div class="bar"><div class="fill" style="width:${p1Pct}%"></div></div>
               <div class="bar  ${this._p3 == null && this._p4 == null ? "r" : ""}"><div class="fill" style="width:${p2Pct}%"></div></div>
-            ${this._p3 != null ? html`<div class="bar r"><div class="fill" style="width:${p3Pct}%"></div></div>`
+            ${this._p3 != null ? html`<div class="bar"><div class="fill" style="width:${p3Pct}%"></div></div>`
               : ""}
-            ${this._p4 != null ? html`<div class="bar r"><div class="fill" style="width:${p4Pct}%"></div></div>`
+            ${this._p4 != null ? html`<div class="bar"><div class="fill" style="width:${p4Pct}%"></div></div>`
               : ""}
             </div>
             <div class="barlabels">
@@ -832,7 +847,7 @@ class B2500DCard extends LitElement {
               ? html`<div class="divider"></div>` 
               : html``;
     
-            // Switch
+  
             if (entity.entity_id.startsWith("switch.")) {
               return html`
                 <div class="row">
@@ -854,7 +869,7 @@ class B2500DCard extends LitElement {
               `;
             }
     
-            // Select
+  
             if (entity.entity_id.startsWith("select.")) {
               return html`
                 <div class="row">
@@ -882,7 +897,6 @@ class B2500DCard extends LitElement {
               `;
             }
     
-            // Fallback (read-only)
             return html`
               <div class="row">
                 <div class="left">
@@ -927,15 +941,18 @@ class B2500DCardEditor extends LitElement {
 
 
   setConfig(config) {
-    // Defaults behalten, damit Felder sichtbar sind
     this._config = {
       output: true,
       battery: true,
       production: true,
       settings: true,
       solar: true,
+      icon: true,
       compact: false,
       max_input_power: 600,
+      max_input_power2: 600,
+      max_input_power3: 600,
+      max_input_power4: 600,
       entities: {
         battery_percentage: "",
         battery_capacity: "",
@@ -960,7 +977,6 @@ class B2500DCardEditor extends LitElement {
 
     const newConfig = { ...ev.detail.value };
 
-    // Wenn entities leer oder alle Werte leer, entfernen
     if (newConfig.entities) {
       const isEmpty = Object.values(newConfig.entities).every(
         (v) => v === null || v === undefined || v === ""
@@ -1028,13 +1044,16 @@ class B2500DCardEditor extends LitElement {
           },
         },
       { name: "compact", selector: { boolean: {} } },
+      { name: "icon", selector: { boolean: {} } },
       { name: "solar", selector: { boolean: {} } },
       { name: "output", selector: { boolean: {} } },
       { name: "battery", selector: { boolean: {} } },
       { name: "production", selector: { boolean: {} } },
       { name: "settings", selector: { boolean: {} } },
-      { name: "max_input_power", selector: { number: { min: 100, max: 5000, step: 50 } },
-      },
+      { name: "max_input_power", selector: { number: { min: 100, max: 5000, step: 50 } }},
+      { name: "max_input_power2", selector: { number: { min: 100, max: 5000, step: 50 } }},
+      { name: "max_input_power3", selector: { number: { min: 100, max: 5000, step: 50 } }},
+      { name: "max_input_power4", selector: { number: { min: 100, max: 5000, step: 50 } }},
     ];
 
     return html`

@@ -26,6 +26,7 @@ export default {
     "device": "Device ID (bv. b2500d)",
     "entities": "Alternatieve entiteiten (object)",
     "compact": "Compacte weergave",
+    "icon": "Opslagpictogram weergeven",
     "solar": "Toon zonne-energie",
     "output": "Toon uitvoer",
     "battery": "Toon batterij",
@@ -38,8 +39,12 @@ export default {
     "device": "Voer de korte naam van het apparaat in (slechts ÉÉN: of device OF entities).",
     "entities": "Alternatief: object met entiteiten (bv. { \"solar_power\": \"sensor.x\" })",
     "compact": "Toont een compactere versie van de kaart",
+    "icon": "Opslagpictogram verbergen",
     "settings": "Alleen zichtbaar als een Device ID wordt gebruikt",
-    "max_input_power": "Maximaal invoervermogen per ingang van het opslagsysteem",
+    "max_input_power": "Maximaal ingangsvermogen string 1",
+    "max_input_power2": "Maximaal ingangsvermogen string 2",
+    "max_input_power3": "Maximaal ingangsvermogen string 3",
+    "max_input_power4": "Maximaal ingangsvermogen string 4",
     "custom_settings": "Voeg hier je aangepaste instellingen toe (alleen in entities-modus)",
   }
 };

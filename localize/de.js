@@ -26,6 +26,7 @@ export default {
     "device": "Geräte-ID (z. B. b2500d)",
     "entities": "Alternative Entitäten (Objekt)",
     "compact": "Kompakt-Ansicht",
+    "icon": "Speicher Icon anzeigen",
     "solar": "Solar anzeigen",
     "output": "Ausgang anzeigen",
     "battery": "Batterie anzeigen",
@@ -38,8 +39,12 @@ export default {
     "device": "Gib die Geräte-Kurzbezeichnung an (nur ODER, nicht beides: device ODER entities).",
     "entities": "Alternativ: Objekt mit Entitäten (z. B. { \"solar_power\": \"sensor.x\" })",
     "compact": "Zeigt eine kompaktere Variante der Karte",
+     "icon": "Blendet das Speicher Icon aus",
     "settings": "Wird nur angezeigt, wenn Geräte-ID verwendet wird",
-    "max_input_power": "Maximale Eingangsleistung am Speicher pro Eingang",
+    "max_input_power": "Maximale Eingangsleistung String 1",
+    "max_input_power2": "Maximale Eingangsleistung String 2",
+    "max_input_power3": "Maximale Eingangsleistung String 3",
+    "max_input_power4": "Maximale Eingangsleistung String 4",
     "custom_settings" : "Füge hier deine benutzerdefinierten Einstellungen hinzu (nur Entitiy Modus)",
   }
 };

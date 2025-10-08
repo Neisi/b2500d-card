@@ -26,6 +26,7 @@ export default {
     "device": "Device ID (e.g. b2500d)",
     "entities": "Alternative Entities (object)",
     "compact": "Compact View",
+    "icon": "Show storage icon",
     "solar": "Show Solar",
     "output": "Show Output",
     "battery": "Show Battery",
@@ -38,8 +39,12 @@ export default {
     "device": "Enter the device short name (only ONE: either device OR entities).",
     "entities": "Alternative: object with entities (e.g. { \"solar_power\": \"sensor.x\" })",
     "compact": "Shows a more compact version of the card",
+    "icon": "Hide the storage icon",
     "settings": "Only shown if device ID is used",
-    "max_input_power": "Maximum input power per input of the storage system",
+    "max_input_power": "Maximum input power string 1",
+    "max_input_power2": "Maximum input power string 2",
+    "max_input_power3": "Maximum input power string 3",
+    "max_input_power4": "Maximum input power string 4",
     "custom_settings": "Add your custom settings here (entities mode only)",
   }
 };
