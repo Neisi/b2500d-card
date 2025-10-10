@@ -2,7 +2,10 @@ name: Build and Release
 
 on:
   release:
-    types: [created]
+    types: [created, published]
+
+permissions:
+  contents: write
 
 jobs:
   build:
@@ -20,7 +23,9 @@ jobs:
       - name: Build with Rollup
         run: npm run build
 
-      # Kopiere das Bundle ins Root, damit es "b2500d-card.js" heißt
+      - name: List dist contents
+        run: ls -la dist
+
       - name: Prepare release asset
         run: cp dist/b2500d-card.js b2500d-card.js
 
@@ -29,4 +34,4 @@ jobs:
         with:
           files: b2500d-card.js
         env:
-          GITHUB_TOKEN: ${{ secrets.MY_GITHUB_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
