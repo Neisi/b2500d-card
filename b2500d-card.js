@@ -534,7 +534,7 @@ class B2500DCard extends LitElement {
     const date = new Date(isoString);
 
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0'); 
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Monate 0-11
     const day = String(date.getDate()).padStart(2, '0');
     const hour = String(date.getHours()).padStart(2, '0');
     const minute = String(date.getMinutes()).padStart(2, '0');
@@ -546,127 +546,81 @@ class B2500DCard extends LitElement {
 
 
 //RENDER COMPACT
- _renderCompact(batteryClass){
-     const percent = this._batteryPercent ?? 0;
-
-      let color = "green";
-      if (percent <= 19) {
-        color = "red";
-      } else if (percent <= 59) {
-        color = "orange";
-      }
-      let icon = "";
-      if (percent >= 100) {
-        icon = "mdi:battery";
-      } else if (percent < 10) {
-        icon = "mdi:battery-outline";
-      } else {
-        let level = Math.floor(percent / 10) * 10;
-        icon = `mdi:battery-${level}`;
-      }
-      return html`
-        <div class="compact" @click=${() => this._handleMoreInfo(this._getEntity("battery_percentage"))}>
-        <div class="device">
-          <div class="unit">
-            <div class="battery-bar">
-              <div class="battery-fill ${batteryClass}" 
-                   style="height:${Math.min(this._batteryPercent, 98)}%">
+     _renderCompact(batteryClass){
+         const percent = this._batteryPercent ?? 0;
+    
+          let color = "green";
+          if (percent <= 19) {
+            color = "red";
+          } else if (percent <= 59) {
+            color = "orange";
+          }
+    
+          let icon = "";
+          if (percent >= 100) {
+            icon = "mdi:battery";
+          } else if (percent < 10) {
+            icon = "mdi:battery-outline";
+          } else {
+            let level = Math.floor(percent / 10) * 10;
+            icon = `mdi:battery-${level}`;
+          }
+          return html`
+            <div class="compact" @click=${() => this._handleMoreInfo(this._getEntity("battery_percentage"))}>
+            <div class="device">
+              <div class="unit">
+                <div class="battery-bar">
+                  <div class="battery-fill ${batteryClass}" 
+                       style="height:${Math.min(this._batteryPercent, 98)}%">
+                  </div>
+                </div>
+                </div>
+              </div>
+    
+              <div class="right">
+                <div class="name">${this.config.name || this.config.device}</div>
+                <div class="flex">
+                <div class="val">
+                  <ha-icon icon="mdi:solar-power"></ha-icon>
+                  <p>${this._solarPower}W</p>
+                </div>
+                <div class="val">
+                  <ha-icon icon="mdi:transmission-tower"></ha-icon>
+                  <p>${this._outputPower}W</p>
+                </div>
+                <div class="val">
+                   <ha-icon icon=${icon} style="color:${color}"></ha-icon>
+                  <p>${this._batteryPercent}%</p>
+                </div>
+              </div>
               </div>
             </div>
-            </div>
-          </div>
-
-          <div class="right">
-            <div class="name">${this.config.name || this.config.device}</div>
-            <div class="flex">
-            <div class="val">
-              <ha-icon icon="mdi:solar-power"></ha-icon>
-              <p>${this._solarPower}W</p>
-            </div>
-            <div class="val">
-              <ha-icon icon="mdi:transmission-tower"></ha-icon>
-              <p>${this._outputPower}W</p>
-            </div>
-            <div class="val">
-               <ha-icon icon=${icon} style="color:${color}"></ha-icon>
-              <p>${this._batteryPercent}%</p>
-            </div>
-          </div>
-          </div>
-        </div>
-      `;
- }
-
-//RENDER UNIT
-_renderUnit(batteryClass){
-  return html`  
-  <div class="unit">
-     <div class="battery-bar">
-       <div class="battery-fill ${batteryClass}" style="height:${Math.min(this._batteryPercent, 98)}%"></div>
-     </div>
-  </div>
-    `
-}
-
-
-/////////////////
-// RENDER
-/////////////////
-  render() {
-     if (this._configError) {
-        return html`<ha-alert alert-type="error">${this._configError}</ha-alert>`;
+          `;
      }
 
-    const solar = Number(this._solarPower);
-    const output = Number(this._outputPower);
-
-    const lang = this._hass?.language || "en";
-    const batteryClass = solar > output && this._batteryPercent < 100
-      ? 'charging'
-      : output > solar && this._batteryPercent > 0
-        ? 'discharging'
-        : '';
-
-    if (this.config.compact) {
-      return this._renderCompact(batteryClass);
+    //RENDER UNIT
+    _renderUnit(batteryClass){
+      return html`  
+      <div class="unit">
+         <div class="battery-bar">
+           <div class="battery-fill ${batteryClass}" style="height:${Math.min(this._batteryPercent, 98)}%"></div>
+         </div>
+      </div>
+        `
     }
 
-    // Fallback: 600 wenn nix übergeben (standard beim b2500d)
-    const maxInputPower = this.config.max_input_power || 600;
-    const maxInputPower2 = this.config.max_input_power2 || 600;
-    const maxInputPower3 = this.config.max_input_power3 || 600;
-    const maxInputPower4 = this.config.max_input_power4 || 600;
-    
-    const p1Pct = Math.round((this._p1 / maxInputPower) * 100);
-    const p2Pct = Math.round((this._p2 / maxInputPower2) * 100);
-    const p3Pct = Math.round((this._p3 / maxInputPower3) * 100);
-    const p4Pct = Math.round((this._p4 / maxInputPower4) * 100);
-
-
-    const selectEntity = this._hass.states[`select.${this.config.device}_charging_mode`];
-    const switchEntity = this._hass.states[`switch.${this.config.device}_adaptive_mode`];
-
-
-    return html`
-      <div class="container">
-        <div class="device">
-          <!-- Header -->
-          <div style="display:grid; justify-content:space-between; width:100%; padding:0 12px; margin-bottom:6px;">
-            <div style="font-weight:600; color:var(--text); font-size:20px">
-              ${this.config.name || this.config.device}
-            </div>
-            <div style="font-size:10px; color:var(--muted);">
-              ${localize("labels.last_update", lang)}: ${this._lastUpdate}
-            </div>
-          </div>
-
-          <!-- Unit mit Akku-Balken -->
-           ${this.config.icon ? this._renderUnit(batteryClass):""}
-        </div>
-
-        <section class="grid">
-          <!-- Solar -->
-           ${this.config.solar ? html`
+    //RENDER SOLAR
+    _renderSolar(lang){
+        const maxInputPower = this.config.max_input_power || 600;
+        const maxInputPower2 = this.config.max_input_power2 || 600;
+        const maxInputPower3 = this.config.max_input_power3 || 600;
+        const maxInputPower4 = this.config.max_input_power4 || 600;
+        const p1Pct = Math.round((this._p1 / maxInputPower) * 100);
+        const p2Pct = Math.round((this._p2 / maxInputPower2) * 100);
+        const p3Pct = Math.round((this._p3 / maxInputPower3) * 100);
+        const p4Pct = Math.round((this._p4 / maxInputPower4) * 100);
+        
+        return html`
 			<article class="card solar">
             <div class="title">
               ${localize("card.solar", lang)}
@@ -696,10 +650,13 @@ _renderUnit(batteryClass){
             
             </div>
             <div class="icon"><ha-icon icon="mdi:solar-power-variant-outline"></ha-icon>︎</div>
-          </article>` : ''}
-
-          <!-- Output -->
-          ${this.config.output ? html`
+          </article>`
+        
+    }
+    
+    //RENDER OUTPUT
+    _renderOutput(lang){
+        return html`
           <article class="card" @click=${() => this._handleMoreInfo(this._getEntity("total_output_power"))}>
               <div class="title">${localize("card.output", lang)}</div>
               <div class="subtitle">${localize("card.realtime", lang)}</div>
@@ -709,134 +666,74 @@ _renderUnit(batteryClass){
               </div>
                <div class="icon"><ha-icon icon="mdi:transmission-tower"></ha-icon>︎</div>
             </article>
-          ` : ''}
-
-               <!-- Battery -->
-            ${this.config.battery ? html`
-            <article class="card battery-card">
-              <div class="title">${localize("card.battery", lang)}</div>
-              <div class="battery">
-                <div class="ring"
-                     style="
-                      background: conic-gradient(
-                          #FC2022 0 ${Math.min(this._batteryPercent, 15)}%, 
-                          orange ${Math.min(this._batteryPercent, 50)}%, 
-                          #58C3D3 ${Math.min(this._batteryPercent, 100)}%, 
-                          rgb(13, 13, 13) ${this._batteryPercent}% 100%
-                        );
-                     "
-                     @click=${() => this._handleMoreInfo(this._getEntity("battery_percentage"))}>
-                  <div class="inner" style="position: relative;">
-                      ${solar > output && this._batteryPercent < 100 ? html`
-                        <ha-icon 
-                          icon="mdi:lightning-bolt" 
-                          class="pulse-green" 
-                          style="
-                            position:absolute; 
-                            top:10px; 
-                            transform: translateX(-50%); 
-                          ">
-                        </ha-icon>
-                      ` : ''}
-                    
-                      <div style="
-                           text-align:center; 
-                           display:flex; 
-                           flex-direction:column; 
-                           align-items:center; 
-                           justify-content:center; 
-                           height:100%;
-                           width:100%;
-                        ">
-                        <div class="flex-wrapper">
-                          <div class="kwh">${Number(this._batteryKwh).toFixed(2)}</div>
-                          <div class="big-num-unit white">kWh</div>
+          ` 
+    }
+    
+    //RENDER BATTERY
+    _renderBattery(lang, solar, output){
+      return  html`
+                <article class="card battery-card">
+                  <div class="title">${localize("card.battery", lang)}</div>
+                  <div class="battery">
+                    <div class="ring"
+                         style="
+                          background: conic-gradient(
+                              #FC2022 0 ${Math.min(this._batteryPercent, 15)}%, 
+                              orange ${Math.min(this._batteryPercent, 50)}%, 
+                              #58C3D3 ${Math.min(this._batteryPercent, 100)}%, 
+                              rgb(13, 13, 13) ${this._batteryPercent}% 100%
+                            );
+                         "
+                         @click=${() => this._handleMoreInfo(this._getEntity("battery_percentage"))}>
+                      <div class="inner" style="position: relative;">
+                          ${solar > output && this._batteryPercent < 100 ? html`
+                            <ha-icon 
+                              icon="mdi:lightning-bolt" 
+                              class="pulse-green" 
+                              style="
+                                position:absolute; 
+                                top:10px; 
+                                transform: translateX(-50%); 
+                              ">
+                            </ha-icon>
+                          ` : ''}
+                        
+                          <div style="
+                               text-align:center; 
+                               display:flex; 
+                               flex-direction:column; 
+                               align-items:center; 
+                               justify-content:center; 
+                               height:100%;
+                               width:100%;
+                            ">
+                            <div class="flex-wrapper">
+                              <div class="kwh">${Number(this._batteryKwh).toFixed(2)}</div>
+                              <div class="big-num-unit white">kWh</div>
+                            </div>
+                            <div class="percent">${this._batteryPercent}%</div>
+                          </div>
                         </div>
-                        <div class="percent">${this._batteryPercent}%</div>
-                      </div>
-                    </div>
-                    </div>
-                <div class="icon"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>
-              </div>
-            </article>` : ''}
-
-          <!-- Production -->
-          ${this.config.production ? html`
+                        </div>
+                    <div class="icon"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>
+                  </div>
+                </article>`
+    }
+    
+    //RENDER PRODUCTION
+    _renderProduction(lang){
+       return html`
           <article class="card"  @click=${() => this._handleMoreInfo(this._getEntity("daily_pv_charging"))}>
             <div class="title">${localize("card.production", lang)}</div>
             <div class="subtitle">${localize("card.today", lang)}</div>
            <div class="flex-wrapper"><div class="big-num">${Number(this._productionToday).toFixed(2)}</div><div class="big-num-unit">kWh</div></div>
             <div class="icon"><ha-icon icon="mdi:chart-bar"></ha-icon>︎</div>
-          </article>` : ''}
-       
-       <!-- Settings Section -->
-    ${this.config.settings || (this.config.custom_settings?.length && this._hass) ? html`
-  <div class="card flat" style="grid-column:1 / -1">
-
-    <!-- Device Settings (nur im Device-Mode, wie bisher) -->
-    ${this.config.device && this.config.settings ? html`
-      <div class="row">
-        <div class="left"><ha-icon icon="mdi:cog"></ha-icon><div style="font-weight:600">${localize("labels.charging_mode", lang)}</div></div>
-        <div class="right">
-          ${selectEntity
-            ? html`
-              <ha-select
-                .value=${selectEntity.state}
-                @selected=${(e) => {
-                  const val = e.target.value;
-                  this._hass.callService("select", "select_option", {
-                    entity_id: selectEntity.entity_id,
-                    option: val
-                  });
-                }}
-              >
-                ${(selectEntity.attributes?.options || []).map(
-                  (opt) => html`<mwc-list-item value=${opt}>
-                    ${localize(opt === "Simultaneous Charging/Discharging" ? "labels.simul_charge" : "labels.full_then_discharge", lang)}
-                  </mwc-list-item>`
-                )}
-              </ha-select>
-            `
-            : html`<span>-</span>`}
-        </div>
-      </div>
-      <div class="divider"></div>
-
-      <div class="row">
-        <div class="left"><ha-icon icon="mdi:power-plug-battery"></ha-icon><div style="font-weight:600">${localize("labels.discharge_mode", lang)}</div></div>
-        <div class="right">
-          ${switchEntity
-            ? html`
-              <ha-switch
-                .checked=${switchEntity.state === "on"}
-                @change=${(e) => {
-                  const service = e.target.checked ? "turn_on" : "turn_off";
-                  this._hass.callService("switch", service, { entity_id: switchEntity.entity_id });
-                }}
-              ></ha-switch>
-            `
-            : html`<span>-</span>`}
-        </div>
-      </div>
-      <div class="divider"></div>
-
-      <div class="row">
-        <div class="left">
-          <ha-icon icon="mdi:transmission-tower-import"></ha-icon>
-          <div style="font-weight:600">${localize("labels.surplus", lang)}</div>
-        </div>
-        <div class="right">
-          <ha-switch
-            style="margin-left:auto"
-            .checked=${this._hass.states[`switch.${this.config.device}_surplus_feed_in`]?.state === "on"}
-            @change=${(e) => this._toggleSwitch(`switch.${this.config.device}_surplus_feed_in`, e.target.checked)}>
-          </ha-switch>
-        </div>
-      </div>
-    ` : ''}
-
-    <!-- Custom Settings -->
-        ${this.config.custom_settings?.length && this._hass  ? html`
+          </article>`   
+    }
+    
+    // RENDER CUSTOM SETTINGS
+    _renderCustomSettings(){
+        return html`
           ${this.config.custom_settings.map((item, index) => {
             const entity = this._hass.states[item.entity];
             if (!entity) return html``;
@@ -847,7 +744,7 @@ _renderUnit(batteryClass){
               ? html`<div class="divider"></div>` 
               : html``;
     
-  
+            // switch entities
             if (entity.entity_id.startsWith("switch.")) {
               return html`
                 <div class="row">
@@ -868,8 +765,8 @@ _renderUnit(batteryClass){
                 ${renderDivider}
               `;
             }
-    
-  
+
+            // select entities
             if (entity.entity_id.startsWith("select.")) {
               return html`
                 <div class="row">
@@ -896,24 +793,165 @@ _renderUnit(batteryClass){
                 ${renderDivider}
               `;
             }
-    
+            // sensor entities
+            if (entity.entity_id.startsWith("sensor.")) {
             return html`
               <div class="row">
                 <div class="left">
                   ${icon ? html`<ha-icon icon="${icon}"></ha-icon>` : ""}
                   <div style="font-weight:600">${name}</div>
                 </div>
-                <div class="right">${entity.state}</div>
+                <div class="flex-wrapper"><div class="big-num">${entity.state}</div> <div class="big-num-unit">${entity.attributes.unit_of_measurement}</div></div>
               </div>
               ${renderDivider}
-            `;
-          })}
+            `;}
+          }
+         )}
+        `;
+    }
+    
+    // RENDER SETTINGS SECTION
+    _renderSettings(lang){
+       const selectEntity = this._hass.states[`select.${this.config.device}_charging_mode`];
+       const switchEntity = this._hass.states[`switch.${this.config.device}_adaptive_mode`];
+       return html`
+       
+        <div class="card flat" style="grid-column:1 / -1">
+    
+         <!-- Device Settings -->
+        ${this.config.device && this.config.settings ? html`
+          <div class="row">
+            <div class="left"><ha-icon icon="mdi:cog"></ha-icon><div style="font-weight:600">${localize("labels.charging_mode", lang)}</div></div>
+            <div class="right">
+              ${selectEntity
+                ? html`
+                  <ha-select
+                    .value=${selectEntity.state}
+                    @selected=${(e) => {
+                      const val = e.target.value;
+                      this._hass.callService("select", "select_option", {
+                        entity_id: selectEntity.entity_id,
+                        option: val
+                      });
+                    }}
+                  >
+                    ${(selectEntity.attributes?.options || []).map(
+                      (opt) => html`<mwc-list-item value=${opt}>
+                        ${localize(opt === "Simultaneous Charging/Discharging" ? "labels.simul_charge" : "labels.full_then_discharge", lang)}
+                      </mwc-list-item>`
+                    )}
+                  </ha-select>
+                `
+                : html`<span>-</span>`}
+            </div>
+          </div>
+          <div class="divider"></div>
+    
+          <div class="row">
+            <div class="left"><ha-icon icon="mdi:power-plug-battery"></ha-icon><div style="font-weight:600">${localize("labels.discharge_mode", lang)}</div></div>
+            <div class="right">
+              ${switchEntity
+                ? html`
+                  <ha-switch
+                    .checked=${switchEntity.state === "on"}
+                    @change=${(e) => {
+                      const service = e.target.checked ? "turn_on" : "turn_off";
+                      this._hass.callService("switch", service, { entity_id: switchEntity.entity_id });
+                    }}
+                  ></ha-switch>
+                `
+                : html`<span>-</span>`}
+            </div>
+          </div>
+          <div class="divider"></div>
+    
+          <div class="row">
+            <div class="left">
+              <ha-icon icon="mdi:transmission-tower-import"></ha-icon>
+              <div style="font-weight:600">${localize("labels.surplus", lang)}</div>
+            </div>
+            <div class="right">
+              <ha-switch
+                style="margin-left:auto"
+                .checked=${this._hass.states[`switch.${this.config.device}_surplus_feed_in`]?.state === "on"}
+                @change=${(e) => this._toggleSwitch(`switch.${this.config.device}_surplus_feed_in`, e.target.checked)}>
+              </ha-switch>
+            </div>
+          </div>
         ` : ''}
-      </div>
-    ` : ''}
+    
+            <!-- Custom Settings -->
+            ${this.config.custom_settings?.length && this._hass  ? this._renderCustomSettings() : ""}
+          
+       </div>
+        `;
+    }
+    
+    // RENDER HEADER
+    _renderHeader(lang){
+        return html`<div style="display:grid; justify-content:space-between; width:100%; padding:0 12px; margin-bottom:6px;">
+            <div style="font-weight:600; color:var(--text); font-size:20px">
+              ${this.config.name || this.config.device}
+            </div>
+            <div style="font-size:10px; color:var(--muted);">
+              ${localize("labels.last_update", lang)}: ${this._lastUpdate}
+            </div>
+          </div>
+          `
+    }
+
+/////////////////
+// RENDER
+/////////////////
+  render() {
+     if (this._configError) {
+        return html`<ha-alert alert-type="error">${this._configError}</ha-alert>`;
+     }
+
+    const solar = Number(this._solarPower);
+    const output = Number(this._outputPower);
+
+    const lang = this._hass?.language || "en";
+    const batteryClass = solar > output && this._batteryPercent < 100
+      ? 'charging'
+      : output > solar && this._batteryPercent > 0
+        ? 'discharging'
+        : '';
+
+    if (this.config.compact) {
+      return this._renderCompact(batteryClass);
+    }
+
+    return html`
+      <div class="container">
+        <div class="device">
+          
+          <!-- Header -->
+          ${this._renderHeader(lang)}
+
+          <!-- Unit mit Akku-Balken -->
+           ${this.config.icon ? this._renderUnit(batteryClass):""}
+        
+        </div>
+
+        <section class="grid">
+          <!-- Solar -->
+          ${this.config.solar ? this._renderSolar(lang) : ""}
+
+          <!-- Output -->
+          ${this.config.output ? this._renderOutput(lang) : ""}
+
+          <!-- Battery -->
+          ${this.config.battery ? this._renderBattery(lang, solar, output) : ""}
+
+          <!-- Production -->
+          ${this.config.production ? this._renderProduction(lang) : ""}
+       
+          <!-- Settings Section -->
+          ${this.config.settings || (this.config.custom_settings?.length && this._hass) ? this._renderSettings(lang) : ""}
         </section>
       </div>
-    `;
+        `;
   }
 
 
@@ -921,7 +959,10 @@ _renderUnit(batteryClass){
     return document.createElement("b2500d-card-editor");
   }
 
-  getCardSize() { return 3; }
+  getCardSize() { 
+      return 3; 
+  }
+
 }
 
 customElements.define("b2500d-card", B2500DCard);
