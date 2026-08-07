@@ -1,5 +1,5 @@
 
-import { LitElement, html, css } from "https://unpkg.com/lit-element/lit-element.js?module";
+import { LitElement, html, css } from "lit";
 import en from "./localize/en.js";
 import de from "./localize/de.js";
 import es from "./localize/es.js";
@@ -122,7 +122,7 @@ class B2500DCard extends LitElement {
 
       .grid {
         display:grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
         gap:14px;
       }
 
@@ -143,15 +143,17 @@ class B2500DCard extends LitElement {
           border-radius: var(--radius);
           padding:12px;
           box-sizing:border-box;
+          min-width: 0;
         }
         
         .icon {
           position: absolute;
-          bottom: 14px;   
-          right: 14px;   
+          bottom: 5px;   
+          right: 5px;   
           font-size: 22px; 
           color:var(--text);
           font-weight: 700;
+          min-width: 0;
         }
         
         ha-icon[icon="mdi:battery-high"] {
@@ -183,6 +185,7 @@ class B2500DCard extends LitElement {
         font-weight:400; 
         font-size:24px; 
         color:var(--text);
+        white-space: nowrap;
       }
 
       .big-num{ font-size:24px; color:var(--text); font-weight:400; }
@@ -228,8 +231,10 @@ class B2500DCard extends LitElement {
 
         .ring {
           position: relative; 
-          width:150px;
-          height:150px;
+          width:min(150px, 100%);
+          aspect-ratio:1 / 1;
+          height:auto;
+          flex:0 0 auto;
           border-radius:50%;
           display:grid;
           place-items:center;
@@ -268,8 +273,12 @@ class B2500DCard extends LitElement {
         
         .pulse-green {
           color: #5be5bf;
-          scale: 0.8;
+          position:absolute;
+          top:8px;
+          left:50%;
+          translate:-50% 0;
           animation: pulseGreen 2.5s infinite ease-in-out;
+          pointer-events:none;
         }
 
      .kwh{ font-size:28px; font-weight:400; color: white; }
@@ -283,18 +292,41 @@ class B2500DCard extends LitElement {
       }
 
       .row{
-        display:flex; align-items:center; justify-content:space-between; gap:10px;
+        display:grid; grid-template-columns:minmax(0, 1fr) auto; align-items:center; gap:10px;
         padding:18px; 
       }
-      .row .left{ display:flex; align-items:center; gap:12px; }
-      .row .right{ color:var(--muted); font-weight:600; display:flex; align-items:center; }
+      
+      .row .left{ display:flex; align-items:center; gap:12px; min-width:0; }
+      .row .left span,
+      .row .left div{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+      .row .right{ color:var(--muted); font-weight:600; display:flex; align-items:center; justify-content:flex-end; min-width:0; }
       .chev{ width:10px; height:10px; border-right:2px solid var(--muted); border-top:2px solid var(--muted); transform:rotate(45deg); margin-left:6px; }
 
       .divider{ height:1px; background:var(--divider); margin:1px 0 0; }
 
-      .row .right ha-select,
-      .row .right ha-switch {
+      .row .right ha-select {
         min-width: 140px;
+        max-width: 100%;
+      }
+      .row .right ha-select {
+        width: min(220px, 100%);
+      }
+
+      .row .right ha-switch {
+        flex:0 0 auto;
+      }
+
+      .row:has(ha-select) {
+        grid-template-columns:1fr;
+      }
+
+      .row:has(ha-select) .right {
+        justify-content:stretch;
+      }
+
+      .row:has(ha-select) .right ha-select {
+        width:100%;
+        max-width:100%;
       }
 
       @media(max-width:700px){
@@ -689,12 +721,7 @@ class B2500DCard extends LitElement {
                           ${solar > output && this._batteryPercent < 100 ? html`
                             <ha-icon 
                               icon="mdi:lightning-bolt" 
-                              class="pulse-green" 
-                              style="
-                                position:absolute; 
-                                top:10px; 
-                                transform: translateX(-50%); 
-                              ">
+                              class="pulse-green">
                             </ha-icon>
                           ` : ''}
                         
@@ -715,7 +742,7 @@ class B2500DCard extends LitElement {
                           </div>
                         </div>
                         </div>
-                    <div class="icon"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>
+                  <div class="icon"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>
                   </div>
                 </article>`
     }
