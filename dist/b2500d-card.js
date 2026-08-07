@@ -53,6 +53,7 @@ var en = {
     "entities": "Alternative Entities (object)",
     "compact": "Compact View",
     "icon": "Show storage icon",
+    "horizontal": "Horizontal Orientation",
     "solar": "Show Solar",
     "output": "Show Output",
     "battery": "Show Battery",
@@ -66,6 +67,7 @@ var en = {
     "entities": "Alternative: object with entities (e.g. { \"solar_power\": \"sensor.x\" })",
     "compact": "Shows a more compact version of the card",
     "icon": "Hide the storage icon",
+    "horizontal": "Orient the card horizontally",
     "settings": "Only shown if device ID is used",
     "max_input_power": "Maximum input power string 1",
     "max_input_power2": "Maximum input power string 2",
@@ -104,6 +106,7 @@ var de = {
     "entities": "Alternative Entitäten (Objekt)",
     "compact": "Kompakt-Ansicht",
     "icon": "Speicher Icon anzeigen",
+    "horizontal": "Horizontale Ausrichtung",
     "solar": "Solar anzeigen",
     "output": "Ausgang anzeigen",
     "battery": "Batterie anzeigen",
@@ -117,6 +120,7 @@ var de = {
     "entities": "Alternativ: Objekt mit Entitäten (z. B. { \"solar_power\": \"sensor.x\" })",
     "compact": "Zeigt eine kompaktere Variante der Karte",
      "icon": "Blendet das Speicher Icon aus",
+    "horizontal": "Zeigt die Karte horizontal an",
     "settings": "Wird nur angezeigt, wenn Geräte-ID verwendet wird",
     "max_input_power": "Maximale Eingangsleistung String 1",
     "max_input_power2": "Maximale Eingangsleistung String 2",
@@ -155,6 +159,7 @@ var es = {
     "entities": "Entidades alternativas (objeto)",
     "compact": "Vista compacta",
     "icon": "Mostrar icono de almacenamiento",
+    "horizontal": "Orientación horizontal",
     "solar": "Mostrar solar",
     "output": "Mostrar salida",
     "battery": "Mostrar batería",
@@ -168,6 +173,7 @@ var es = {
     "entities": "Alternativa: objeto con entidades (ej. { \"solar_power\": \"sensor.x\" })",
     "compact": "Muestra una versión más compacta de la tarjeta",
     "icon": "Ocultar icono de almacenamiento",
+    "horizontal": "Orientar la tarjeta horizontalmente",
     "settings": "Solo se muestra si se utiliza la ID del dispositivo",
     "max_input_power": "Potencia de entrada máxima cadena 1",
     "max_input_power2": "Potencia de entrada máxima cadena 2",
@@ -206,6 +212,7 @@ var fr = {
     "entities": "Entités alternatives (objet)",
     "compact": "Vue compacte",
     "icon": "Afficher l’icône de stockage",
+    "horizontal": "Orientation horizontale",
     "solar": "Afficher solaire",
     "output": "Afficher sortie",
     "battery": "Afficher batterie",
@@ -219,6 +226,7 @@ var fr = {
     "entities": "Alternative : objet avec entités (ex. { \"solar_power\": \"sensor.x\" })",
     "compact": "Affiche une version plus compacte de la carte",
     "icon": "Masquer l’icône de stockage",
+    "horizontal": "Orient la carte horizontalement",
     "settings": "Uniquement affiché si un ID d’appareil est utilisé",
     "max_input_power": "Puissance d’entrée maximale chaîne 1",
     "max_input_power2": "Puissance d’entrée maximale chaîne 2",
@@ -262,6 +270,7 @@ var nl = {
     "battery": "Toon batterij",
     "production": "Toon productie",
     "settings": "Toon instellingen",
+    "horizontal": "Horizontale uitrichting",
     "max_input_power": "Maximaal invoervermogen (W)",
     "custom_settings": "Aangepaste instellingen",
   },
@@ -270,6 +279,7 @@ var nl = {
     "entities": "Alternatief: object met entiteiten (bv. { \"solar_power\": \"sensor.x\" })",
     "compact": "Toont een compactere versie van de kaart",
     "icon": "Opslagpictogram verbergen",
+    "horizontal": "De kaart horizontaal oriënteren",
     "settings": "Alleen zichtbaar als een Device ID wordt gebruikt",
     "max_input_power": "Maximaal ingangsvermogen string 1",
     "max_input_power2": "Maximaal ingangsvermogen string 2",
@@ -331,8 +341,7 @@ class B2500DCard extends i {
         display:flex;
         flex-direction:column;
         align-items:center;
-        gap:14px;
-        padding:6px 0 14px
+        padding:6px 0 6px;
       }
 
       .device .unit {
@@ -346,6 +355,23 @@ class B2500DCard extends i {
         display:flex;
         align-items:center;
         justify-content:center;
+      }
+
+      .unit-wrapper {
+        width: 80px;
+        height: 130px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+
+      .unit-wrapper.rotated {
+        width:130px;
+        height:80px;
+      }
+
+      .unit-wrapper.rotated .unit {
+        transform:rotate(90deg);
       }
     
       .unit .battery-bar {
@@ -543,13 +569,9 @@ class B2500DCard extends i {
           display: grid;
           place-items: center;
         }
-        
-        .pulse-green {
+  
+        .pulse-green{
           color: #5be5bf;
-          position:absolute;
-          top:8px;
-          left:50%;
-          translate:-50% 0;
           animation: pulseGreen 2.5s infinite ease-in-out;
           pointer-events:none;
         }
@@ -906,12 +928,14 @@ class B2500DCard extends i {
     //RENDER UNIT
     _renderUnit(batteryClass){
       return b`  
-      <div class="unit">
-         <div class="battery-bar">
-           <div class="battery-fill ${batteryClass}" style="height:${Math.min(this._batteryPercent, 98)}%"></div>
-         </div>
+      <div class="unit-wrapper ${this.config.horizontal === true ? "rotated" : ""}">
+        <div class="unit">
+          <div class="battery-bar">
+            <div class="battery-fill ${batteryClass}" style="height:${Math.min(this._batteryPercent, 98)}%"></div>
+          </div>
+        </div>
       </div>
-        `
+      `
     }
 
     //RENDER SOLAR
@@ -991,13 +1015,6 @@ class B2500DCard extends i {
                          "
                          @click=${() => this._handleMoreInfo(this._getEntity("battery_percentage"))}>
                       <div class="inner" style="position: relative;">
-                          ${solar > output && this._batteryPercent < 100 ? b`
-                            <ha-icon 
-                              icon="mdi:lightning-bolt" 
-                              class="pulse-green">
-                            </ha-icon>
-                          ` : ''}
-                        
                           <div style="
                                text-align:center; 
                                display:flex; 
@@ -1015,7 +1032,10 @@ class B2500DCard extends i {
                           </div>
                         </div>
                         </div>
-                  <div class="icon"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>
+                  ${solar > output && this._batteryPercent < 100 ? b`
+                      <div class="icon pulse-green"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>
+                          ` : 
+                         b` <div class="icon"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>`}
                   </div>
                 </article>`
     }
@@ -1290,6 +1310,7 @@ class B2500DCardEditor extends i {
       solar: true,
       icon: true,
       compact: false,
+      horizontal: false,
       max_input_power: 600,
       max_input_power2: 600,
       max_input_power3: 600,
@@ -1386,6 +1407,7 @@ class B2500DCardEditor extends i {
         },
       { name: "compact", selector: { boolean: {} } },
       { name: "icon", selector: { boolean: {} } },
+      { name: "horizontal", selector: { boolean: {} } },
       { name: "solar", selector: { boolean: {} } },
       { name: "output", selector: { boolean: {} } },
       { name: "battery", selector: { boolean: {} } },
