@@ -734,16 +734,6 @@ class B2500DCard extends i {
         return false;
       }
     
-      if (entities) {
-        const powerKeys = ["p1_power","p2_power","p3_power","p4_power"].filter(k => entities[k] !== undefined);
-        const valid2 = powerKeys.length === 2 && powerKeys.includes("p1_power") && powerKeys.includes("p2_power");
-        const valid4 = powerKeys.length === 4 && ["p1_power","p2_power","p3_power","p4_power"].every(k => powerKeys.includes(k));
-        if (!valid2 && !valid4) {
-          this._configError = localize("errors.entities_invalid", lang);
-          return false;
-        }
-      }
-    
       this._configError = null;
       return true;
     }
@@ -756,10 +746,8 @@ class B2500DCard extends i {
       // Device-Modus
       const device = this.config.device;
       const getState = (entity) => hass.states[entity]?.state || 0;
-
       this._solarPower = getState(`sensor.${device}_total_input_power`);
       this._p1 = getState(`sensor.${device}_input_1_power`);
-      this._p2 = getState(`sensor.${device}_input_2_power`);
       this._outputPower = getState(`sensor.${device}_total_output_power`);
       this._batteryPercent = getState(`sensor.${device}_battery_percentage`);
       this._batteryKwh = getState(`sensor.${device}_battery_capacity`) / 1000;
@@ -790,7 +778,9 @@ class B2500DCard extends i {
     
       this._solarPower = Number(this._hass.states[e.solar_power]?.state) || 0;
       this._p1 = Number(this._hass.states[e.p1_power]?.state) || 0;
-      this._p2 = Number(this._hass.states[e.p2_power]?.state) || 0;
+      this._p2 = this._hass.states[e.p2_power]?.state !== undefined
+          ? Number(this._hass.states[e.p2_power].state)
+          : null;
       this._p3 = this._hass.states[e.p3_power]?.state !== undefined
           ? Number(this._hass.states[e.p3_power].state)
           : null;
@@ -968,22 +958,24 @@ class B2500DCard extends i {
             </div>
             <div style="width: 85%;">
             <div class="barlabels">
-              <div @click=${() => this._handleMoreInfo(this._getEntity("input_1_power"))}>${this._p1} W</div>
-              <div @click=${() => this._handleMoreInfo(this._getEntity("input_2_power"))}>${this._p2} W</div>
+              ${this._p1 != null ? b`<div @click=${() => this._handleMoreInfo(this._getEntity("input_1_power"))}>${this._p1} W</div>` : ""}
+              ${this._p2 != null ? b`<div @click=${() => this._handleMoreInfo(this._getEntity("input_2_power"))}>${this._p2} W</div>` : ""}
               ${this._p3 != null ? b`<div @click=${() => this._handleMoreInfo(this._getEntity("input_3_power"))}>${this._p3} W</div>` : ""}
               ${this._p4 != null ? b`<div @click=${() => this._handleMoreInfo(this._getEntity("input_4_power"))}>${this._p4} W</div>` : ""}
             </div>
             <div class="barwrap">
-              <div class="bar"><div class="fill" style="width:${p1Pct}%"></div></div>
-              <div class="bar  ${this._p3 == null && this._p4 == null ? "r" : ""}"><div class="fill" style="width:${p2Pct}%"></div></div>
+            ${this._p1 != null ? b`<div class="bar"><div class="fill" style="width:${p1Pct}%"></div></div>`
+              : ""}
+            ${this._p2 != null ? b`<div class="bar"><div class="fill" style="width:${p2Pct}%"></div></div>`
+              : ""}
             ${this._p3 != null ? b`<div class="bar"><div class="fill" style="width:${p3Pct}%"></div></div>`
               : ""}
             ${this._p4 != null ? b`<div class="bar"><div class="fill" style="width:${p4Pct}%"></div></div>`
               : ""}
             </div>
             <div class="barlabels">
-              <div class="hint">P1</div>
-              <div class="hint">P2</div>
+            ${this._p1 != null ? b`<div class="hint">P1</div>` : ""}
+            ${this._p2 != null ? b`<div class="hint">P2</div>` : ""}
             ${this._p3 != null ? b`<div class="hint">P3</div>` : ""}
             ${this._p4 != null ? b`<div class="hint">P4</div>` : ""}
             </div>
