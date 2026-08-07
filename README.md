@@ -126,7 +126,6 @@ If you provide individual entities instead of `device`, the object looks like th
 | `battery_capacity`     | string | Available battery capacity (**Wh** or **kWh**) |
 | `solar_power`          | string | Total solar power sensor |
 | `p1_power`             | string | PV string 1 sensor |
-| `p2_power`             | string | PV string 2 sensor |
 | `output_power`         | string | Total output power sensor |
 | `production_today`     | string | Daily PV generation sensor (**Wh** or **kWh**) |
 
@@ -153,6 +152,7 @@ For the compact card, it’s enough to provide e.g. `battery_percentage`, `solar
 | `max_input_power2` | number | Maximum input power for scaling P2 bar | `600` |
 | `max_input_power3` | number | Maximum input power for scaling P3 bar | `600` |
 | `max_input_power4` | number | Maximum input power for scaling P4 bar | `600` |
+| `p2_power`             | string | PV string 2 sensor |
 | `p3_power`       | string | PV string 3 sensor                                        | `null`|
 | `p4_power`        | string | PV string 4 sensor                                       | `null`|
 | `last_update`        | string | ISO 8601 string for last update                        | `n/a`|
