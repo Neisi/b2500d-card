@@ -58,8 +58,7 @@ class B2500DCard extends LitElement {
         display:flex;
         flex-direction:column;
         align-items:center;
-        gap:14px;
-        padding:6px 0 14px
+        padding:6px 0 6px;
       }
 
       .device .unit {
@@ -73,6 +72,23 @@ class B2500DCard extends LitElement {
         display:flex;
         align-items:center;
         justify-content:center;
+      }
+
+      .unit-wrapper {
+        width: 80px;
+        height: 130px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+      }
+
+      .unit-wrapper.rotated {
+        width:130px;
+        height:80px;
+      }
+
+      .unit-wrapper.rotated .unit {
+        transform:rotate(90deg);
       }
     
       .unit .battery-bar {
@@ -270,13 +286,9 @@ class B2500DCard extends LitElement {
           display: grid;
           place-items: center;
         }
-        
-        .pulse-green {
+  
+        .pulse-green{
           color: #5be5bf;
-          position:absolute;
-          top:8px;
-          left:50%;
-          translate:-50% 0;
           animation: pulseGreen 2.5s infinite ease-in-out;
           pointer-events:none;
         }
@@ -633,12 +645,14 @@ class B2500DCard extends LitElement {
     //RENDER UNIT
     _renderUnit(batteryClass){
       return html`  
-      <div class="unit">
-         <div class="battery-bar">
-           <div class="battery-fill ${batteryClass}" style="height:${Math.min(this._batteryPercent, 98)}%"></div>
-         </div>
+      <div class="unit-wrapper ${this.config.horizontal === true ? "rotated" : ""}">
+        <div class="unit">
+          <div class="battery-bar">
+            <div class="battery-fill ${batteryClass}" style="height:${Math.min(this._batteryPercent, 98)}%"></div>
+          </div>
+        </div>
       </div>
-        `
+      `
     }
 
     //RENDER SOLAR
@@ -718,13 +732,6 @@ class B2500DCard extends LitElement {
                          "
                          @click=${() => this._handleMoreInfo(this._getEntity("battery_percentage"))}>
                       <div class="inner" style="position: relative;">
-                          ${solar > output && this._batteryPercent < 100 ? html`
-                            <ha-icon 
-                              icon="mdi:lightning-bolt" 
-                              class="pulse-green">
-                            </ha-icon>
-                          ` : ''}
-                        
                           <div style="
                                text-align:center; 
                                display:flex; 
@@ -742,7 +749,10 @@ class B2500DCard extends LitElement {
                           </div>
                         </div>
                         </div>
-                  <div class="icon"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>
+                  ${solar > output && this._batteryPercent < 100 ? html`
+                      <div class="icon pulse-green"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>
+                          ` : 
+                         html` <div class="icon"><ha-icon icon="mdi:battery-high"></ha-icon>︎</div>`}
                   </div>
                 </article>`
     }
@@ -1017,6 +1027,7 @@ class B2500DCardEditor extends LitElement {
       solar: true,
       icon: true,
       compact: false,
+      horizontal: false,
       max_input_power: 600,
       max_input_power2: 600,
       max_input_power3: 600,
@@ -1113,6 +1124,7 @@ class B2500DCardEditor extends LitElement {
         },
       { name: "compact", selector: { boolean: {} } },
       { name: "icon", selector: { boolean: {} } },
+      { name: "horizontal", selector: { boolean: {} } },
       { name: "solar", selector: { boolean: {} } },
       { name: "output", selector: { boolean: {} } },
       { name: "battery", selector: { boolean: {} } },
