@@ -587,6 +587,17 @@ class B2500DCard extends LitElement {
     return formatted;
   }
 
+  _formatEntityValue(entity) {
+    const formatted = this._hass.formatEntityState(entity);
+    const unit = entity.attributes.unit_of_measurement;
+
+    if (!unit) return formatted;
+
+    return formatted.endsWith(unit)
+      ? formatted.slice(0, -unit.length).trim()
+      : formatted;
+  }
+
 
 
 //RENDER COMPACT
@@ -838,7 +849,7 @@ class B2500DCard extends LitElement {
                   ${icon ? html`<ha-icon icon="${icon}"></ha-icon>` : ""}
                   <div style="font-weight:600">${name}</div>
                 </div>
-                <div class="flex-wrapper"><div class="big-num">${entity.state}</div> <div class="big-num-unit">${entity.attributes.unit_of_measurement}</div></div>
+                <div class="flex-wrapper"><div class="big-num">${this._formatEntityValue(entity)}</div> <div class="big-num-unit">${entity.attributes.unit_of_measurement}</div></div>
               </div>
               ${renderDivider}
             `;}
