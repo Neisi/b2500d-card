@@ -366,17 +366,43 @@ class B2500DCard extends LitElement {
         transform: scale(0.6);
         transform-origin: center;
       }
-      
+
       .compact .device{
-          margin-left: 3px;
-          padding: 0 0 0 0;
+        margin-left: 3px;
+        padding: 0;
+        position: relative;
+        width: 48px;
+        height: 88px;
+        flex-shrink: 0;
+     }
+      
+     .compact .device .unit {
+        position: absolute;
+        transform: scale(0.6);
+        left: 2px;
+        top: 5px;
+        transform-origin: top left;
+      }
+      .compact .device.rotated {
+        width: 80px;
+        height: 48px;
+        position: relative;
+        flex-shrink: 0;
+        margin: 2px;
+      }
+
+      .compact .device.rotated .unit {
+         position: absolute;
+         top: calc((48px - 130px) / 2);
+        transform-origin: center;
+        transform: scale(0.6) rotate(90deg);
       }
 
       .compact .right {
         display: flex;
         flex-direction: column;
         gap: 12px;
-        margin-left: 10px;
+        margin: 10px;
       }
 
       .compact .name {
@@ -612,16 +638,19 @@ class B2500DCard extends LitElement {
           }
           return html`
             <div class="compact" @click=${() => this._handleMoreInfo(this._getEntity("battery_percentage"))}>
-            <div class="device">
-              <div class="unit">
-                <div class="battery-bar">
-                  <div class="battery-fill ${batteryClass}" 
-                       style="height:${Math.min(this._batteryPercent, 98)}%">
+            
+   
+            <div class="device ${this.config.horizontal === true ? "rotated" : ""}">
+                <div class="unit">
+                  <div class="battery-bar">
+                    <div class="battery-fill ${batteryClass}" 
+                        style="height:${Math.min(this._batteryPercent, 98)}%">
+                    </div>
                   </div>
                 </div>
-                </div>
-              </div>
-    
+            </div>
+            
+            
               <div class="right">
                 <div class="name">${this.config.name || this.config.device}</div>
                 <div class="flex">
