@@ -491,6 +491,7 @@ class B2500DCard extends LitElement {
       const getState = (entity) => hass.states[entity]?.state || 0;
       this._solarPower = getState(`sensor.${device}_total_input_power`);
       this._p1 = getState(`sensor.${device}_input_1_power`);
+      this._p2 = getState(`sensor.${device}_input_2_power`);
       this._outputPower = getState(`sensor.${device}_total_output_power`);
       this._batteryPercent = getState(`sensor.${device}_battery_percentage`);
       this._batteryKwh = getState(`sensor.${device}_battery_capacity`) / 1000;
