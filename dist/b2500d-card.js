@@ -1130,7 +1130,7 @@ class B2500DCard extends i {
                   <div class="right">
                     <ha-select
                       .value=${entity.state}
-                      @selected=${(e) => {
+                      @change=${(e) => {
                         const val = e.target.value;
                         this._hass.callService("select", "select_option", {
                           entity_id: entity.entity_id,
@@ -1180,7 +1180,7 @@ class B2500DCard extends i {
                 ? b`
                   <ha-select
                     .value=${selectEntity.state}
-                    @selected=${(e) => {
+                    @change=${(e) => {
                       const val = e.target.value;
                       this._hass.callService("select", "select_option", {
                         entity_id: selectEntity.entity_id,
