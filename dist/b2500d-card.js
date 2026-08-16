@@ -1130,16 +1130,15 @@ class B2500DCard extends i {
                   <div class="right">
                     <ha-select
                       .value=${entity.state}
+                      .options=${entity.attributes?.options || []}
+                      @closed=${(e) => e.stopPropagation()}
                       @change=${(e) => {
-                        const val = e.target.value;
+                        const val = e.detail?.value ?? e.target.value;
                         this._hass.callService("select", "select_option", {
                           entity_id: entity.entity_id,
                           option: val
                         });
                       }}>
-                      ${(entity.attributes?.options || []).map(
-                        (opt) => b`<mwc-list-item value=${opt}>${opt}</mwc-list-item>`
-                      )}
                     </ha-select>
                   </div>
                 </div>
