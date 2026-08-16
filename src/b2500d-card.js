@@ -847,16 +847,15 @@ class B2500DCard extends LitElement {
                   <div class="right">
                     <ha-select
                       .value=${entity.state}
+                      .options=${entity.attributes?.options || []}
+                      @closed=${(e) => e.stopPropagation()}
                       @change=${(e) => {
-                        const val = e.target.value;
+                        const val = e.detail?.value ?? e.target.value;
                         this._hass.callService("select", "select_option", {
                           entity_id: entity.entity_id,
                           option: val
                         });
                       }}>
-                      ${(entity.attributes?.options || []).map(
-                        (opt) => html`<mwc-list-item value=${opt}>${opt}</mwc-list-item>`
-                      )}
                     </ha-select>
                   </div>
                 </div>
@@ -897,19 +896,21 @@ class B2500DCard extends LitElement {
                 ? html`
                   <ha-select
                     .value=${selectEntity.state}
+                    .options=${(selectEntity.attributes?.options || []).map(
+                      (opt) => ({
+                        value: opt,
+                        label: localize(opt === "Simultaneous Charging/Discharging" ? "labels.simul_charge" : "labels.full_then_discharge", lang)
+                      })
+                    )}
+                    @closed=${(e) => e.stopPropagation()}
                     @change=${(e) => {
-                      const val = e.target.value;
+                      const val = e.detail?.value ?? e.target.value;
                       this._hass.callService("select", "select_option", {
                         entity_id: selectEntity.entity_id,
                         option: val
                       });
                     }}
                   >
-                    ${(selectEntity.attributes?.options || []).map(
-                      (opt) => html`<mwc-list-item value=${opt}>
-                        ${localize(opt === "Simultaneous Charging/Discharging" ? "labels.simul_charge" : "labels.full_then_discharge", lang)}
-                      </mwc-list-item>`
-                    )}
                   </ha-select>
                 `
                 : html`<span>-</span>`}
