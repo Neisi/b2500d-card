@@ -1179,19 +1179,21 @@ class B2500DCard extends i {
                 ? b`
                   <ha-select
                     .value=${selectEntity.state}
+                    .options=${(selectEntity.attributes?.options || []).map(
+                      (opt) => ({
+                        value: opt,
+                        label: localize(opt === "Simultaneous Charging/Discharging" ? "labels.simul_charge" : "labels.full_then_discharge", lang)
+                      })
+                    )}
+                    @closed=${(e) => e.stopPropagation()}
                     @change=${(e) => {
-                      const val = e.target.value;
+                      const val = e.detail?.value ?? e.target.value;
                       this._hass.callService("select", "select_option", {
                         entity_id: selectEntity.entity_id,
                         option: val
                       });
                     }}
                   >
-                    ${(selectEntity.attributes?.options || []).map(
-                      (opt) => b`<mwc-list-item value=${opt}>
-                        ${localize(opt === "Simultaneous Charging/Discharging" ? "labels.simul_charge" : "labels.full_then_discharge", lang)}
-                      </mwc-list-item>`
-                    )}
                   </ha-select>
                 `
                 : b`<span>-</span>`}
